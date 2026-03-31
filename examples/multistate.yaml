@@ -1,0 +1,28 @@
+# Multi-state characters (2 and 3 states)
+
+name: multistate
+
+taxa:
+  - id: A
+  - id: B
+  - id: C
+  - id: D
+  - id: E
+
+characters:
+  - id: feature1
+    states: [none, partial, full]
+    data: {A: none, B: partial, C: full, D: full, E: partial}
+  - id: feature2
+    data: {A: absent, B: absent, C: present, D: present, E: present}
+  - id: feature3
+    states: [type_a, type_b, type_c]
+    data: {A: type_a, B: type_b, C: type_c, D: type_a, E: type_b}
+  - id: feature4
+    data: {A: zero, B: zero, C: one, D: one, E: zero}
+
+analysis:
+  coding: variable
+  seed: 1305
+  iterations: 5000
+  sample_frequency: 50

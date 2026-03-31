@@ -1,0 +1,22 @@
+#NEXUS
+[ Cross-validation test: simple binary Mk, coding=variable ]
+Begin data;
+    Dimensions ntax=6 nchar=10;
+    Format datatype=standard symbols="0 1" missing=? gap=-;
+    Matrix
+        A  0 0 1 0 0 1 0 0 1 0
+        B  0 0 1 0 1 1 0 1 1 0
+        C  1 1 0 1 1 0 1 1 0 1
+        D  1 1 0 1 0 0 1 0 0 1
+        E  1 0 0 1 1 0 0 1 0 0
+        F  0 1 1 0 0 1 1 0 1 1
+    ;
+End;
+Begin mrbayes;
+    set autoclose=yes nowarnings=yes;
+    set seed=42;
+    lset coding=variable;
+    mcmcp nrun=1 nchain=1 ngen=1000 samplefr=10;
+    mcmcp printfr=1000 diagnfr=1000;
+    mcmc;
+End;

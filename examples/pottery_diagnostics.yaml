@@ -1,0 +1,154 @@
+# Bronze Age Mediterranean pottery traditions
+# 6 traditions, 13 characters, diagnostics for Egyptian+Levantine clade
+
+name: pottery_diagnostics
+
+taxa:
+  - id: min
+    name: Minoan
+  - id: myc
+    name: Mycenaean
+  - id: cyp
+    name: Cypriot
+  - id: hit
+    name: Hittite
+  - id: egy
+    name: Egyptian
+  - id: lev
+    name: Levantine
+
+characters:
+  # Aegean shared technology
+  - id: slip_technique
+    states: [unslipped, slipped]
+    data:
+      min: slipped
+      myc: slipped
+      cyp: slipped
+      hit: unslipped
+      egy: unslipped
+      lev: unslipped
+  - id: burnishing
+    states: [absent, present]
+    data:
+      min: present
+      myc: present
+      cyp: present
+      hit: absent
+      egy: absent
+      lev: absent
+  - id: stirrup_jar
+    states: [absent, present]
+    data:
+      min: present
+      myc: present
+      cyp: present
+      hit: absent
+      egy: absent
+      lev: absent
+  # Minoan + Mycenaean exclusive
+  - id: marine_motifs
+    states: [absent, present]
+    data:
+      min: present
+      myc: present
+      cyp: absent
+      hit: absent
+      egy: absent
+      lev: absent
+  - id: palace_workshop
+    states: [absent, present]
+    data:
+      min: present
+      myc: present
+      cyp: absent
+      hit: absent
+      egy: absent
+      lev: absent
+  - id: fresco_influence
+    states: [absent, present]
+    data:
+      min: present
+      myc: present
+      cyp: absent
+      hit: absent
+      egy: absent
+      lev: absent
+  # Near Eastern shared
+  - id: coil_building
+    states: [absent, dominant]
+    data:
+      min: absent
+      myc: absent
+      cyp: absent
+      hit: dominant
+      egy: dominant
+      lev: dominant
+  - id: geometric_stamp
+    states: [absent, present]
+    data:
+      min: absent
+      myc: absent
+      cyp: absent
+      hit: present
+      egy: present
+      lev: present
+  # Egyptian + Levantine closer
+  - id: lotus_decoration
+    states: [absent, present]
+    data:
+      min: absent
+      myc: absent
+      cyp: absent
+      hit: absent
+      egy: present
+      lev: present
+  - id: faience_glaze
+    states: [absent, present]
+    data:
+      min: absent
+      myc: absent
+      cyp: absent
+      hit: absent
+      egy: present
+      lev: present
+  # Trade-diffused features (create homoplasy)
+  - id: painted_bands
+    states: [absent, present]
+    data:
+      min: present
+      myc: present
+      cyp: present
+      hit: absent
+      egy: present
+      lev: present
+  - id: pilgrim_flask
+    states: [absent, present]
+    data:
+      min: absent
+      myc: present
+      cyp: present
+      hit: absent
+      egy: present
+      lev: present
+  # Cypriot trade contact with Levant (conflicts with tree)
+  - id: base_ring_form
+    states: [absent, present]
+    data:
+      min: absent
+      myc: absent
+      cyp: present
+      hit: absent
+      egy: absent
+      lev: present
+
+analysis:
+  coding: variable
+  seed: 1305
+  iterations: 200000
+  sample_frequency: 50
+  sitelikes: yes
+
+diagnostics:
+  - chardiag: [Egyptian, Levantine]
+  - sensitivity: [Egyptian, Levantine]

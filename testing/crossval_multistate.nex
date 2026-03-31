@@ -1,0 +1,22 @@
+#NEXUS
+[ Cross-validation test: multi-state Mk (2 and 3 states), coding=variable ]
+Begin data;
+    Dimensions ntax=6 nchar=8;
+    Format datatype=standard symbols="0 1 2" missing=? gap=-;
+    Matrix
+        A  0 0 1 2 0 1 0 2
+        B  0 1 1 0 1 1 0 0
+        C  1 1 0 1 1 0 1 1
+        D  1 0 0 2 0 0 1 2
+        E  1 1 0 1 1 0 0 1
+        F  0 0 1 0 0 1 1 0
+    ;
+End;
+Begin mrbayes;
+    set autoclose=yes nowarnings=yes;
+    set seed=42;
+    lset coding=variable;
+    mcmcp nrun=1 nchain=1 ngen=1000 samplefr=10;
+    mcmcp printfr=1000 diagnfr=1000;
+    mcmc;
+End;

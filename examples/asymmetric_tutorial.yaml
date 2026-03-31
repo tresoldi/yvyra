@@ -1,0 +1,50 @@
+# Asymmetric model tutorial — directional change
+
+name: asymmetric_tutorial
+
+taxa:
+  - id: proto
+    name: Proto
+  - id: lang_a
+    name: LangA
+  - id: lang_b
+    name: LangB
+  - id: lang_c
+    name: LangC
+  - id: lang_d
+    name: LangD
+
+models:
+  one_way:
+    costs:
+      conservative:  0     1.0
+      innovative:    50.0  0
+  fort_len:
+    costs:
+      strong:  0    1.0
+      weak:    3.0  0
+
+characters:
+  - id: innovation1
+    model: one_way
+    weight: 2.0
+    data: {proto: conservative, lang_a: innovative, lang_b: innovative, lang_c: conservative, lang_d: conservative}
+  - id: innovation2
+    model: one_way
+    weight: 2.0
+    data: {proto: conservative, lang_a: innovative, lang_b: innovative, lang_c: conservative, lang_d: conservative}
+  - id: lenition1
+    model: fort_len
+    data: {proto: strong, lang_a: weak, lang_b: weak, lang_c: strong, lang_d: strong}
+  - id: neutral1
+    data: {proto: state_a, lang_a: state_a, lang_b: state_b, lang_c: state_b, lang_d: state_a}
+
+analysis:
+  coding: variable
+  seed: 1305
+  iterations: 5000
+  sample_frequency: 50
+  sitelikes: yes
+
+diagnostics:
+  - chardiag: [LangA, LangB]

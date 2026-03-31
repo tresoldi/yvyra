@@ -1,0 +1,21 @@
+{
+    "mk_smoke": {
+        "description": "Minimal 4-taxon 5-char smoke test, 1 run 1 chain 1000 gen",
+        "likelihood_range": [-20.0, -5.0],
+        "completed": true
+    },
+    "mk_synthetic": {
+        "description": "Synthetic 6-taxon 15-char, 2 runs 2 chains 5000 gen, coding=variable rates=gamma",
+        "likelihood_range": [-80.0, -40.0],
+        "asdsf_max": 0.20,
+        "psrf_range": [0.90, 1.30],
+        "completed": true
+    },
+    "mk_real": {
+        "description": "Hymenoptera 20-taxon 200-char (189 included), 2 runs 2 chains 10000 gen, coding=variable rates=gamma",
+        "likelihood_range": [-1350.0, -1200.0],
+        "asdsf_max": 0.30,
+        "psrf_range": [0.90, 1.30],
+        "completed": true
+    }
+}

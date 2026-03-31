@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>yvyra — Bayesian Phylogenetics for Linguistic Data</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/nord.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/eclipse.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/solarized.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/yaml/yaml.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-selection@3/dist/d3-selection.min.js"></script>
+<style>
+:root{--bg:#fafaf8;--fg:#222;--accent:#2a5a3a;--border:#ccc;--code-bg:#f0f0ec;--btn-bg:#2a5a3a;--btn-fg:#fff;--btn-hover:#1e4a2e;--muted:#666;--progress-bg:#e0e0dc;--progress-fill:#2a5a3a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;background:var(--bg);color:var(--fg);margin:0;padding:0;line-height:1.6}
+.page-main{max-width:940px;margin:0 auto;padding:1.5rem 1.5rem 2rem}
+.guide-open .page-main{max-width:none;padding:1.5rem 1.5rem 2rem}
+
+/* Top navigation bar */
+.top-nav{background:var(--accent);color:#fff;padding:.5rem 1.5rem;display:flex;align-items:center;gap:1rem;font-size:.9rem;position:sticky;top:0;z-index:50}
+.top-nav .brand{font-weight:bold;font-size:1.1rem;letter-spacing:.5px;margin-right:auto}
+.top-nav a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.85rem}
+.top-nav a:hover{color:#fff}
+.top-nav button{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);padding:.3rem .8rem;border-radius:4px;cursor:pointer;font-size:.85rem;font-family:inherit}
+.top-nav button:hover{background:rgba(255,255,255,.25)}
+.top-nav button.active{background:rgba(255,255,255,.3);border-color:rgba(255,255,255,.6)}
+h1{font-size:2rem;margin-bottom:.1rem;color:var(--accent)}h2{font-size:1.3rem;margin:2rem 0 .8rem;color:var(--accent);border-bottom:1px solid var(--border);padding-bottom:.3rem}
+p{margin-bottom:1rem}a{color:var(--accent)}.subtitle{font-size:1.05rem;color:var(--muted);margin-bottom:.5rem;font-style:italic}
+.intro{margin-bottom:1.5rem}
+.features{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin:1rem 0 1.5rem}.feature{background:var(--code-bg);padding:.7rem 1rem;border-radius:4px;font-size:.9rem}.feature strong{display:block;margin-bottom:.2rem}
+@media(max-width:600px){.features{grid-template-columns:1fr}}
+.toolbar{display:flex;gap:.5rem;align-items:center;margin-bottom:.5rem;flex-wrap:wrap}
+select,button{font-family:inherit;font-size:.85rem;padding:.35rem .7rem;border-radius:4px;border:1px solid var(--border);cursor:pointer}
+button.primary{background:var(--btn-bg);color:var(--btn-fg);border-color:var(--btn-bg);font-weight:bold}button.primary:hover{background:var(--btn-hover)}button.primary:disabled{opacity:.5;cursor:not-allowed}
+button.secondary{background:var(--code-bg)}.spacer{flex:1}
+.editor-wrap{border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:.5rem}.CodeMirror{height:420px;font-size:.82rem}
+textarea.fallback-editor{width:100%;height:420px;font-family:'Menlo','Consolas',monospace;font-size:.82rem;padding:.8rem;border:1px solid var(--border);border-radius:4px;background:var(--code-bg);resize:vertical;tab-size:2}
+.progress-bar{width:100%;height:22px;background:var(--progress-bg);border-radius:4px;overflow:hidden;margin:.5rem 0;display:none}
+.progress-fill{height:100%;background:var(--progress-fill);width:0%;transition:width .3s;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.75rem;font-weight:bold;min-width:2rem}
+.status{font-size:.85rem;color:var(--muted);margin:.3rem 0;min-height:1.2rem}
+.load-info{font-size:.82rem;color:var(--muted);text-align:center;padding:1rem;background:var(--code-bg);border-radius:4px;margin:1rem 0;display:none}
+.load-bar{width:100%;height:18px;background:var(--progress-bg);border-radius:4px;overflow:hidden;margin-top:.5rem;position:relative}
+.load-bar-fill{height:100%;width:30%;border-radius:4px;background:repeating-linear-gradient(-45deg,var(--progress-fill),var(--progress-fill) 10px,#3a7a5a 10px,#3a7a5a 20px);position:absolute;left:-30%;top:0;animation:load-slide 1.5s ease-in-out infinite}
+@keyframes load-slide{0%{left:-30%}50%{left:70%}100%{left:-30%}}
+#output{width:100%;height:400px;font-family:'Menlo','Consolas',monospace;font-size:.78rem;line-height:1.4;padding:.8rem;border:1px solid var(--border);border-radius:4px;background:#1a1a1a;color:#d4d4c8;overflow:auto;white-space:pre;display:none}
+.downloads{margin:.8rem 0;display:none}.downloads button{margin-right:.4rem;margin-bottom:.3rem;font-size:.82rem}
+.results-panel{margin:1rem 0}
+.summary{display:none;margin:0}.summary h3{font-size:1.05rem;color:var(--accent);margin:0 0 .5rem}
+.summary .convergence-badge{display:inline-block;padding:.2rem .6rem;border-radius:3px;font-size:.8rem;font-weight:bold;margin-left:.5rem}
+.summary .badge-ok{background:#27ae60;color:#fff}
+.summary .badge-warn{background:#e67e22;color:#fff}
+.summary .badge-bad{background:#c0392b;color:#fff}
+.summary details{margin-bottom:.8rem}
+.summary details>summary{cursor:pointer;font-weight:bold;font-size:.92rem;color:var(--accent);padding:.3rem 0}
+.summary .results-table{width:100%;border-collapse:collapse;font-size:.85rem;margin:.5rem 0}
+.summary .results-table th{text-align:left;padding:.3rem .6rem;border-bottom:2px solid var(--accent);background:var(--code-bg);color:var(--accent);font-size:.82rem}
+.summary .results-table td{padding:.3rem .6rem;border-bottom:1px solid var(--border)}
+.summary-section{margin-bottom:1.2rem}.summary-section h4{font-size:.95rem;margin:0 0 .4rem;color:var(--fg)}
+.consensus-tree{font-family:'Menlo','Consolas',monospace;font-size:.8rem;background:var(--code-bg);padding:.6rem;border-radius:4px;white-space:pre;overflow-x:auto;line-height:1.3}
+.tree-svg-wrap{background:var(--code-bg);border-radius:4px;padding:.8rem;overflow-x:auto}
+.tree-svg-wrap svg{display:block}
+.tree-svg .branch{fill:none;stroke:var(--fg);stroke-width:1.5px}
+.tree-svg .tip-label{font-family:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;font-size:.82rem;fill:var(--fg)}
+.tree-svg .node-label-bg{fill:var(--code-bg);stroke:var(--border);stroke-width:1.2px;rx:2}
+.tree-svg .node-label{font-family:'Menlo','Consolas',monospace;font-size:.68rem;fill:var(--muted)}
+.tree-svg .scale-line{fill:none;stroke:var(--fg);stroke-width:1px}
+.tree-svg .scale-label{font-family:'Menlo','Consolas',monospace;font-size:.7rem;fill:var(--muted)}
+.tree-note{font-size:.78rem;color:var(--muted);margin-top:.4rem;font-style:italic}
+.tree-export{font-size:.78rem;margin-top:.3rem}
+.tree-export a{color:var(--accent);cursor:pointer;text-decoration:underline}
+footer{margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);font-size:.85rem;color:var(--muted)}footer p{margin-bottom:.5rem}
+.citation{background:var(--code-bg);padding:.8rem 1rem;border-radius:4px;font-size:.82rem;margin:.8rem 0}
+
+/* Guide sidebar */
+.page-layout{display:grid;grid-template-columns:1fr 0px}
+.guide-open.page-layout{grid-template-columns:1fr 370px}
+@media(max-width:900px){.page-layout.guide-open{grid-template-columns:1fr;}.guide-panel{position:fixed;right:0;top:0;bottom:0;width:370px;z-index:100;box-shadow:-2px 0 8px rgba(0,0,0,.15)}}
+.page-main{min-width:0;overflow:hidden}
+.guide-panel{background:#fff;border-left:1px solid var(--border);overflow:hidden;font-size:.88rem;line-height:1.55;position:sticky;top:38px;height:calc(100vh - 38px);align-self:start;width:0;min-width:0;padding:0;opacity:0;transition:width .3s ease,min-width .3s ease,padding .3s ease,opacity .25s ease .05s}
+.guide-open .guide-panel{width:370px;min-width:370px;padding:1.2rem;opacity:1;overflow-y:auto}
+.guide-pull-tab{position:fixed;right:0;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;text-orientation:mixed;background:var(--accent);color:#fff;padding:.6rem .3rem;border-radius:4px 0 0 4px;cursor:pointer;font-size:.8rem;font-weight:bold;letter-spacing:1px;z-index:40;box-shadow:-1px 0 4px rgba(0,0,0,.1);transition:opacity .3s}
+.guide-pull-tab:hover{background:var(--btn-hover)}
+.guide-open .guide-pull-tab{opacity:0;pointer-events:none}
+.guide-panel h3{font-size:1.1rem;color:var(--accent);margin:0 0 .8rem;display:flex;justify-content:space-between;align-items:center}
+.guide-panel h3 button{font-size:.8rem;padding:.2rem .5rem;background:var(--code-bg);border:1px solid var(--border);border-radius:3px;cursor:pointer}
+.guide-step{margin-bottom:1.5rem;padding-bottom:1.2rem;border-bottom:1px solid var(--border)}
+.guide-step:last-child{border-bottom:none}
+.guide-step h4{font-size:.95rem;color:var(--accent);margin:0 0 .5rem;cursor:pointer}
+.guide-step h4 .step-num{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;background:var(--accent);color:#fff;border-radius:50%;font-size:.75rem;margin-right:.4rem}
+.guide-step .step-body{display:none;margin-top:.5rem}
+.guide-step.active .step-body{display:block}
+.guide-step p{margin-bottom:.6rem;font-size:.86rem}
+.guide-step ul{margin:.4rem 0 .6rem 1.2rem;font-size:.86rem}
+.guide-step li{margin-bottom:.3rem}
+.guide-step code{background:var(--code-bg);padding:.1rem .3rem;border-radius:2px;font-size:.82rem}
+.guide-step .load-btn{display:inline-block;background:var(--btn-bg);color:var(--btn-fg);border:none;padding:.3rem .8rem;border-radius:4px;cursor:pointer;font-size:.82rem;margin-top:.4rem}
+.guide-step .load-btn:hover{background:var(--btn-hover)}
+.beta-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center}
+.beta-modal{background:#fff;border-radius:6px;max-width:520px;width:90%;padding:1.5rem 2rem;box-shadow:0 4px 20px rgba(0,0,0,.25);font-size:.9rem;line-height:1.6}
+.beta-modal h3{color:var(--accent);margin:0 0 .8rem;font-size:1.1rem}
+.beta-modal p{margin-bottom:.8rem}
+.beta-modal .beta-close{display:block;margin:1rem auto 0;background:var(--btn-bg);color:var(--btn-fg);border:none;padding:.4rem 1.5rem;border-radius:4px;cursor:pointer;font-family:inherit;font-size:.9rem}
+.beta-modal .beta-close:hover{background:var(--btn-hover)}
+</style>
+</head>
+<body>
+<div class="beta-overlay" id="betaModal">
+<div class="beta-modal">
+<h3>yvyra 0.1.0 — beta</h3>
+<p>This is a beta version of yvyra. The core MCMC engine and diagnostic
+tools are functional, and MCMC results are cross-validated against
+upstream MrBayes 3.2.7a after each change to the source code (deterministic
+match under identical seeds and settings). Still, the software has not
+been validated extensively enough for use in published studies, and
+results should be treated as preliminary.</p>
+<p>Several features from the roadmap are not yet integrated, including
+ancestral state constraints (root priors), continuous traits, estimated
+transition rates, and clock models. These are planned for upcoming
+releases.</p>
+<p>If you are interested in using yvyra for your work, or would like to
+collaborate on its development, I would be glad to hear from you.
+Contact: Tiago Tresoldi
+(<a href="mailto:tiago.tresoldi@lingfil.uu.se">tiago.tresoldi@lingfil.uu.se</a>).</p>
+<button class="beta-close" onclick="document.getElementById('betaModal').style.display='none'">Continue</button>
+</div>
+</div>
+<nav class="top-nav">
+<span class="brand">yvyra 0.1.0</span>
+<a href="https://github.com/tresoldi/yvyra">GitHub</a>
+<button id="guideBtn" onclick="toggleGuide()">Guide</button>
+</nav>
+<div class="guide-pull-tab" onclick="toggleGuide()">G&thinsp;U&thinsp;I&thinsp;D&thinsp;E</div>
+<div class="page-layout" id="pageLayout">
+<div class="page-main">
+<h1>yvyra</h1>
+<p class="subtitle">Bayesian inference of phylogeny for linguistics and culture</p>
+<div class="intro">
+<p>yvyra (Guarani: "tree") adapts the Mk model framework (Lewis 2001) and
+the MrBayes MCMC sampler (Ronquist et al. 2012) for historical linguistics,
+stemmatology, and cultural phylogenetics, with asymmetric evolution models,
+character weights, confidence-weighted tips, and per-character diagnostics.</p>
+</div>
+<div class="features">
+<div class="feature"><strong>Asymmetric models</strong>Directional cost matrices: lenition is common, fortition is rare</div>
+<div class="feature"><strong>Character weights</strong>Weight characters by comparative importance</div>
+<div class="feature"><strong>Confidence tips</strong>Encode uncertainty in fragmentary attestations</div>
+<div class="feature"><strong>Character diagnostics</strong>Which characters drive each clade</div>
+<div class="feature"><strong>Sensitivity analysis</strong>Test robustness to individual character removal</div>
+<div class="feature"><strong>Runs in your browser</strong>No installation. Full engine compiled to WebAssembly</div>
+</div>
+<h2>Run an analysis</h2>
+<div class="load-info" id="loadInfo"><span id="loadText">Loading yvyra engine (1.3 MB)...</span><div class="load-bar"><div class="load-bar-fill"></div></div></div>
+<div id="app">
+<div class="toolbar">
+<select id="examples" onchange="onExampleSelect()">
+<option value="anatolian">Anatolian (Billing &amp; Elgh 2023)</option>
+<option value="anatolian_diag">Anatolian + diagnostics</option>
+<option value="simple">Simple Mk (Greek dialects)</option>
+<option value="multistate">Multi-state (3 states)</option>
+<option value="usercost">Asymmetric model tutorial</option></select>
+<button class="secondary" onclick="clearEd()">Clear</button>
+<button class="secondary" onclick="document.getElementById('fileUp').click()">Upload</button>
+<button class="secondary" onclick="saveYaml()">Save</button>
+<button class="secondary" onclick="beautifyYaml()">Beautify</button>
+<input type="file" id="fileUp" accept=".yaml,.yml,.txt" style="display:none" onchange="uploadFile(event)">
+<select id="editorTheme" onchange="setEditorTheme(this.value)" style="font-size:.8rem">
+<option value="dracula">Theme: Dracula</option>
+<option value="nord">Theme: Nord</option>
+<option value="monokai">Theme: Monokai</option>
+<option value="solarized dark">Theme: Solarized Dark</option>
+<option value="eclipse">Theme: Eclipse (light)</option>
+<option value="solarized light">Theme: Solarized Light</option>
+</select>
+<span class="spacer"></span>
+<button class="primary" id="runBtn" onclick="runAnalysis()" disabled>Run Analysis</button>
+</div>
+<div class="editor-wrap" id="editorWrap"><textarea id="taEditor" class="fallback-editor" spellcheck="false"></textarea></div>
+<div class="toolbar"><span class="status" id="status"></span></div>
+<div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+<div class="results-panel" id="resultsPanel">
+<div class="summary" id="summary"></div>
+<div class="downloads" id="downloads"></div>
+</div>
+<details style="margin-top:.5rem"><summary style="cursor:pointer;font-size:.9rem;color:var(--muted)">Generated NEXUS</summary><pre id="nexusOut" style="font-size:.78rem;background:var(--code-bg);padding:.6rem;border-radius:4px;max-height:300px;overflow:auto;margin-top:.3rem"></pre></details>
+<details style="margin-top:.5rem"><summary style="cursor:pointer;font-size:.9rem;color:var(--muted)">Raw output</summary><div id="output"></div></details>
+</div>
+<footer>
+<div class="citation">
+<strong>How to cite yvyra:</strong><br>
+Tresoldi, T. 2026. yvyra: Bayesian phylogenetic inference for linguistic and cultural data.
+Software available at <a href="https://yvyra.tresoldi.org">yvyra.tresoldi.org</a>.<br><br>
+<strong>Please also cite the underlying methods:</strong><br>
+Ronquist, F. et al. 2012. MrBayes 3.2: Efficient Bayesian phylogenetic inference
+and model selection across a large model space. <em>Syst. Biol.</em> 61:539-542.<br>
+Lewis, P. O. 2001. A likelihood approach to estimating phylogeny from discrete
+morphological character data. <em>Syst. Biol.</em> 50:913-925.
+</div>
+<p>Source: <a href="https://github.com/tresoldi/yvyra">github.com/tresoldi/yvyra</a></p>
+</footer>
+</div><!-- end page-main -->
+<div class="guide-panel" id="guidePanel">
+<h3>Guide <button onclick="toggleGuide()">Close</button></h3>
+<div id="guideSteps"></div>
+</div>
+</div><!-- end page-layout -->
+<script src="guide-content.js"></script>
+<script>
+const EX={
+anatolian:`# Anatolian languages — Billing & Elgh (2023)
+# 5 taxa, 8 characters, 4 asymmetric models
+
+name: anatolian
+
+taxa:
+  - id: hit
+    name: Hittite
+  - id: pal
+    name: Palaic
+  - id: lyd
+    name: Lydian
+  - id: luw
+    name: Luwian
+  - id: lyc
+    name: Lycian
+
+models:
+  fort_len:
+    costs:
+      conservative:  0    1.0
+      lenited:       2.0  0
+  one_way:
+    costs:
+      conservative:  0      1.0
+      innovative:    100.0  0
+  third_pl:
+    costs:
+      no_ers:         0       1.0    3.0
+      ers_secondary:  100.0   0      3.0
+      ers_primary:    100.0   100.0  0
+  nti:
+    costs:
+      conservative:  0    1.0
+      innovative:    2.0  0
+
+characters:
+  - id: len_fric
+    model: fort_len
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: lenited
+      luw: ~
+      lyc: lenited
+  - id: eh1_a
+    model: one_way
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: innovative
+      luw: ~
+      lyc: innovative
+  - id: ye_yi
+    model: one_way
+    weight: 2.0
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: innovative
+      luw: innovative
+      lyc: innovative
+  - id: centum
+    model: one_way
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: innovative
+      luw: conservative
+      lyc: innovative
+  - id: lar_phon
+    model: fort_len
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: lenited
+      luw: lenited
+      lyc: lenited
+  - id: gen_ers
+    model: third_pl
+    data:
+      hit: no_ers
+      pal: {no_ers: 0.6, ers_primary: 0.4}
+      lyd: ers_secondary
+      luw: ers_primary
+      lyc: ers_primary
+  - id: nza_abl
+    model: nti
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: conservative
+      luw: innovative
+      lyc: innovative
+  - id: ablins_Vdi
+    data:
+      hit: absent
+      pal: absent
+      lyd: present
+      luw: present
+      lyc: present
+
+analysis:
+  coding: variable
+  seed: 1305
+  iterations: 10000
+  sample_frequency: 50
+  runs: 1
+  chains: 1
+  print_frequency: 2000
+  diagnostic_frequency: 5000
+  sitelikes: yes
+`,
+anatolian_diag:`# Anatolian + post-processing diagnostics
+
+name: anatolian_diag
+
+taxa:
+  - id: hit
+    name: Hittite
+  - id: pal
+    name: Palaic
+  - id: lyd
+    name: Lydian
+  - id: luw
+    name: Luwian
+  - id: lyc
+    name: Lycian
+
+models:
+  fort_len:
+    costs:
+      conservative:  0    1.0
+      lenited:       2.0  0
+  one_way:
+    costs:
+      conservative:  0      1.0
+      innovative:    100.0  0
+  third_pl:
+    costs:
+      no_ers:         0       1.0    3.0
+      ers_secondary:  100.0   0      3.0
+      ers_primary:    100.0   100.0  0
+
+characters:
+  - id: len_fric
+    model: fort_len
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: lenited
+      luw: ~
+      lyc: lenited
+  - id: ye_yi
+    model: one_way
+    weight: 2.0
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: innovative
+      luw: innovative
+      lyc: innovative
+  - id: lar_phon
+    model: fort_len
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: lenited
+      luw: lenited
+      lyc: lenited
+  - id: gen_ers
+    model: third_pl
+    data:
+      hit: no_ers
+      pal: {no_ers: 0.6, ers_primary: 0.4}
+      lyd: ers_secondary
+      luw: ers_primary
+      lyc: ers_primary
+  - id: ablins_Vdi
+    data:
+      hit: absent
+      pal: absent
+      lyd: present
+      luw: present
+      lyc: present
+
+analysis:
+  coding: variable
+  seed: 1305
+  iterations: 10000
+  sample_frequency: 50
+  runs: 1
+  chains: 1
+  sitelikes: yes
+
+diagnostics:
+  - chardiag: [Luwian, Lycian]
+  - sensitivity: [Luwian, Lycian]
+  - asr_entropy
+`,
+simple:`# A fictional family inspired by Ancient Greek dialects
+# 6 languages, 14 characters (phonological and morphological)
+
+name: simple_mk
+
+taxa:
+  - id: koine
+    name: Koine
+  - id: dorian
+    name: Dorian
+  - id: aeolic
+    name: Aeolic
+  - id: arcadian
+    name: Arcadian
+  - id: ionic
+    name: Ionic
+  - id: attic
+    name: Attic
+
+characters:
+  - id: h_loss
+    data: {koine: preserved, dorian: preserved, aeolic: preserved, arcadian: lost, ionic: lost, attic: lost}
+  - id: w_loss
+    data: {koine: preserved, dorian: preserved, aeolic: preserved, arcadian: lost, ionic: lost, attic: lost}
+  - id: long_vowel_shift
+    data: {koine: absent, dorian: absent, aeolic: absent, arcadian: present, ionic: present, attic: present}
+  - id: dat_pl_merger
+    data: {koine: distinct, dorian: distinct, aeolic: distinct, arcadian: merged, ionic: merged, attic: merged}
+  - id: gen_s_ending
+    data: {koine: absent, dorian: absent, aeolic: absent, arcadian: present, ionic: present, attic: present}
+  - id: vowel_contraction
+    data: {koine: absent, dorian: absent, aeolic: absent, arcadian: absent, ionic: present, attic: present}
+  - id: quantitative_metathesis
+    data: {koine: absent, dorian: absent, aeolic: absent, arcadian: absent, ionic: present, attic: present}
+  - id: psilosis
+    data: {koine: absent, dorian: absent, aeolic: absent, arcadian: absent, ionic: present, attic: present}
+  - id: first_aor_part
+    data: {koine: absent, dorian: present, aeolic: present, arcadian: absent, ionic: absent, attic: absent}
+  - id: dat_en_ending
+    data: {koine: absent, dorian: present, aeolic: present, arcadian: absent, ionic: absent, attic: absent}
+  - id: patronymic_suffix
+    data: {koine: absent, dorian: present, aeolic: present, arcadian: absent, ionic: absent, attic: absent}
+  - id: dual_loss
+    data: {koine: preserved, dorian: lost, aeolic: lost, arcadian: lost, ionic: lost, attic: lost}
+  - id: optative_reduction
+    data: {koine: preserved, dorian: lost, aeolic: lost, arcadian: lost, ionic: lost, attic: lost}
+  - id: accent_shift
+    data: {koine: conservative, dorian: innovative, aeolic: conservative, arcadian: innovative, ionic: conservative, attic: innovative}
+
+analysis:
+  coding: variable
+  seed: 1305
+  iterations: 25000
+  sample_frequency: 50
+`,
+multistate:`# Multi-state characters (2 and 3 states)
+
+name: multistate
+
+taxa:
+  - id: A
+  - id: B
+  - id: C
+  - id: D
+  - id: E
+
+characters:
+  - id: feature1
+    states: [none, partial, full]
+    data: {A: none, B: partial, C: full, D: full, E: partial}
+  - id: feature2
+    data: {A: absent, B: absent, C: present, D: present, E: present}
+  - id: feature3
+    states: [type_a, type_b, type_c]
+    data: {A: type_a, B: type_b, C: type_c, D: type_a, E: type_b}
+  - id: feature4
+    data: {A: zero, B: zero, C: one, D: one, E: zero}
+
+analysis:
+  coding: variable
+  seed: 1305
+  iterations: 5000
+  sample_frequency: 50
+`,
+usercost:`# Asymmetric model tutorial — directional change
+
+name: asymmetric_tutorial
+
+taxa:
+  - id: proto
+    name: Proto
+  - id: lang_a
+    name: LangA
+  - id: lang_b
+    name: LangB
+  - id: lang_c
+    name: LangC
+  - id: lang_d
+    name: LangD
+
+models:
+  one_way:
+    costs:
+      conservative:  0     1.0
+      innovative:    50.0  0
+  fort_len:
+    costs:
+      strong:  0    1.0
+      weak:    3.0  0
+
+characters:
+  - id: innovation1
+    model: one_way
+    weight: 2.0
+    data: {proto: conservative, lang_a: innovative, lang_b: innovative, lang_c: conservative, lang_d: conservative}
+  - id: innovation2
+    model: one_way
+    weight: 2.0
+    data: {proto: conservative, lang_a: innovative, lang_b: innovative, lang_c: conservative, lang_d: conservative}
+  - id: lenition1
+    model: fort_len
+    data: {proto: strong, lang_a: weak, lang_b: weak, lang_c: strong, lang_d: strong}
+  - id: neutral1
+    data: {proto: state_a, lang_a: state_a, lang_b: state_b, lang_c: state_b, lang_d: state_a}
+
+analysis:
+  coding: variable
+  seed: 1305
+  iterations: 5000
+  sample_frequency: 50
+  sitelikes: yes
+
+diagnostics:
+  - chardiag: [LangA, LangB]
+`};
+
+let worker=null,wasmReady=false,editor=null,totalGen=0,outputFiles={},runCount=0;
+let editorDirty=false,lastLoadedExample='anatolian';
+
+function initEditor(){
+  const ta=document.getElementById('taEditor');
+  if(typeof CodeMirror!=='undefined'){
+    ta.style.display='none';
+    const savedTheme=(function(){try{return localStorage.getItem('yvyra-theme')}catch(e){return null}})() || 'dracula';
+    document.getElementById('editorTheme').value=savedTheme;
+    editor=CodeMirror(document.getElementById('editorWrap'),{value:EX.anatolian,mode:'yaml',theme:savedTheme,lineNumbers:true,tabSize:2,indentWithTabs:false});
+    editor.on('change',function(){editorDirty=true});
+  } else { ta.value=EX.anatolian; ta.addEventListener('input',function(){editorDirty=true}); }
+}
+function getEd(){return editor?editor.getValue():document.getElementById('taEditor').value}
+function setEd(t){if(editor)editor.setValue(t);else document.getElementById('taEditor').value=t;editorDirty=false}
+function setEditorTheme(theme){if(editor){editor.setOption('theme',theme);try{localStorage.setItem('yvyra-theme',theme)}catch(e){}}}
+
+function clearResults(){
+  document.getElementById('summary').style.display='none';document.getElementById('summary').innerHTML='';
+  document.getElementById('downloads').style.display='none';
+  document.getElementById('output').textContent='';document.getElementById('output').style.display='none';
+  document.getElementById('nexusOut').textContent='';
+  document.getElementById('progressBar').style.display='none';
+  document.getElementById('status').textContent='';
+  outputFiles={};
+}
+function onExampleSelect(){
+  const k=document.getElementById('examples').value;if(!k)return;
+  if(editorDirty&&!confirm('You have unsaved changes. Replace with example?'))
+    {document.getElementById('examples').value=lastLoadedExample;return}
+  setEd(EX[k]);lastLoadedExample=k;clearResults();
+}
+function clearEd(){if(editorDirty&&!confirm('Clear editor? Unsaved changes will be lost.'))return;setEd('');lastLoadedExample='';clearResults()}
+function uploadFile(ev){
+  const f=ev.target.files[0];if(!f)return;
+  if(editorDirty&&!confirm('Replace editor with uploaded file?')){ev.target.value='';return}
+  const r=new FileReader();r.onload=e=>{setEd(e.target.result);lastLoadedExample='';document.getElementById('examples').value='';clearResults()};r.readAsText(f);ev.target.value='';
+}
+function saveYaml(){const t=getEd(),m=t.match(/^name:\s*(\S+)/m);downloadFile((m?m[1]:'config')+'.yaml',t)}
+
+function beautifyYaml(){
+  let text=getEd();
+  const lines=text.split('\n');
+  const out=[];
+  let prevWasBlank=false;
+
+  for(let i=0;i<lines.length;i++){
+    let line=lines[i];
+    /* Remove trailing whitespace */
+    line=line.replace(/\s+$/,'');
+
+    /* Expand long flow mappings on data: lines */
+    const dataMatch=line.match(/^(\s*)(data|costs):\s*\{(.+)\}\s*$/);
+    if(dataMatch&&line.length>65){
+      const indent=dataMatch[1];
+      const key=dataMatch[2];
+      const inner=dataMatch[3];
+      /* Parse key: value pairs from the flow mapping */
+      const pairs=[];
+      let rest=inner;
+      while(rest.length>0){
+        rest=rest.replace(/^\s*/,'');
+        if(!rest)break;
+        /* Match key: value, handling nested {..} */
+        const pm=rest.match(/^([^:,{}]+):\s*/);
+        if(!pm)break;
+        const k=pm[1].trim();
+        rest=rest.substring(pm[0].length);
+        let v='';
+        if(rest.startsWith('{')){
+          /* Nested flow mapping — keep as-is */
+          let depth=0,j=0;
+          for(;j<rest.length;j++){
+            if(rest[j]==='{')depth++;
+            if(rest[j]==='}')depth--;
+            if(depth===0){j++;break;}
+          }
+          v=rest.substring(0,j);
+          rest=rest.substring(j);
+        } else {
+          const vm=rest.match(/^([^,}]*)/);
+          v=vm?vm[1].trim():'';
+          rest=rest.substring(vm?vm[0].length:0);
+        }
+        rest=rest.replace(/^\s*,?\s*/,'');
+        pairs.push([k,v]);
+      }
+      out.push(indent+key+':');
+      for(const [k,v] of pairs)
+        out.push(indent+'  '+k+': '+v);
+      prevWasBlank=false;
+      continue;
+    }
+
+    /* Add blank line before top-level sections */
+    if(line.match(/^(taxa|models|characters|analysis|diagnostics):/)){
+      if(!prevWasBlank&&out.length>0)out.push('');
+    }
+    /* Add blank line before each character entry (- id:) at character level */
+    if(line.match(/^\s{2}- id:/)&&!prevWasBlank&&out.length>0){
+      const prevLine=out[out.length-1];
+      if(prevLine&&!prevLine.match(/^characters:/))out.push('');
+    }
+
+    const isBlank=line.trim().length===0;
+    /* Collapse multiple blank lines */
+    if(isBlank&&prevWasBlank)continue;
+    out.push(line);
+    prevWasBlank=isBlank;
+  }
+
+  /* Remove trailing blank lines */
+  while(out.length>0&&out[out.length-1].trim()==='')out.pop();
+  out.push('');
+
+  setEd(out.join('\n'));
+}
+function downloadFile(n,c){const b=new Blob([c],{type:'text/plain'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=n;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u)}
+
+function initWorker(){
+  worker=new Worker('worker.js?v='+Date.now());
+  const li=document.getElementById('loadInfo'),rb=document.getElementById('runBtn');
+  li.style.display='block';rb.disabled=true;
+  worker.onmessage=function(e){
+    const m=e.data;
+    if(m.type==='ready'){wasmReady=true;li.style.display='none';rb.disabled=false}
+    else if(m.type==='status'&&!wasmReady)document.getElementById('loadText').textContent=m.text;
+    else if(m.type==='error'&&!wasmReady){document.getElementById('loadText').textContent='Error: '+m.message;document.querySelector('.load-bar').style.display='none'}
+    else handleMsg(m);
+  };
+  worker.onerror=function(e){document.getElementById('loadText').textContent='Worker error: '+(e.message||'unknown');document.querySelector('.load-bar').style.display='none'};
+  const t0=Date.now();setInterval(()=>{if(wasmReady)return;const s=Math.round((Date.now()-t0)/1000);const el=document.getElementById('loadText');if(s>5&&el.textContent.indexOf('Error')===-1)el.textContent='Compiling WebAssembly... ('+s+'s)'},2000);
+}
+
+function handleMsg(msg){
+  const out=document.getElementById('output'),pf=document.getElementById('progressFill'),dl=document.getElementById('downloads'),st=document.getElementById('status'),rb=document.getElementById('runBtn');
+  if(msg.type==='output'){out.textContent+=msg.text+'\n';out.scrollTop=out.scrollHeight}
+  else if(msg.type==='progress'){const p=Math.min(100,(msg.generation/totalGen)*100);pf.style.width=p+'%';pf.textContent=Math.round(p)+'%';st.textContent='Generation '+msg.generation+' / '+totalGen}
+  else if(msg.type==='status')st.textContent=msg.text;
+  else if(msg.type==='nexus')document.getElementById('nexusOut').textContent=msg.text;
+  else if(msg.type==='done'){
+    pf.style.width='100%';pf.textContent='100%';st.textContent='Complete (exit '+msg.exitCode+')';rb.disabled=false;rb.textContent='Run Analysis';
+    outputFiles=msg.files||{};const ks=Object.keys(outputFiles).sort();
+    if(ks.length){dl.style.display='block';dl.innerHTML='<strong>Download:</strong> ';for(const f of ks){const b=document.createElement('button');b.className='secondary';b.textContent=f;b.onclick=()=>downloadFile(f,outputFiles[f]);dl.appendChild(b)}}
+    const s=parseSummary(out.textContent);
+    if(s.bestLnL||s.clades||s.phylogram||s.chardiag||s.converged!==undefined)renderSummary(s);
+  }
+  else if(msg.type==='error'){st.textContent='Error: '+msg.message;rb.disabled=false;rb.textContent='Run Analysis';document.getElementById('progressBar').style.display='none'}
+}
+
+function runAnalysis(){
+  const yaml=getEd();if(!yaml.trim())return;
+  const m=yaml.match(/iterations:\s*(\d+)|ngen:\s*(\d+)/);totalGen=m?parseInt(m[1]||m[2]):10000;
+  const out=document.getElementById('output'),pb=document.getElementById('progressBar'),pf=document.getElementById('progressFill');
+  out.textContent='';out.style.display='block';
+  document.getElementById('summary').style.display='none';document.getElementById('summary').innerHTML='';
+  document.getElementById('downloads').style.display='none';document.getElementById('nexusOut').textContent='';
+  pb.style.display='block';pf.style.width='0%';pf.textContent='';
+  document.getElementById('runBtn').disabled=true;document.getElementById('runBtn').textContent='Running...';
+  outputFiles={};runCount++;
+  if(runCount>1||!wasmReady){
+    if(worker)worker.terminate();wasmReady=false;
+    document.getElementById('status').textContent='Reinitializing...';
+    worker=new Worker('worker.js?v='+Date.now());
+    worker.onmessage=function(e){const m=e.data;if(m.type==='ready'){wasmReady=true;document.getElementById('status').textContent='Starting...';worker.postMessage({type:'run',yaml:yaml})}else if(m.type==='status'&&!wasmReady)document.getElementById('status').textContent=m.text;else handleMsg(m)};
+  } else {document.getElementById('status').textContent='Starting...';worker.postMessage({type:'run',yaml:yaml})}
+}
+
+function parseSummary(text){
+  const s={};
+  /* Best log-likelihood */
+  const ll=text.match(/[Ll]og [Ll]ikelihood of best state.*?was ([-\d.]+)/g)
+         || text.match(/Likelihood of best state for "cold" chain.*?was ([-\d.]+)/g);
+  if(ll)s.bestLnL=ll.map(m=>parseFloat(m.match(/([-\d.]+)$/)[1]));
+
+  /* ASDSF */
+  const a=text.match(/Average standard deviation of split frequencies: ([\d.]+)/g);
+  if(a&&a.length)s.asdsf=parseFloat(a[a.length-1].match(/([\d.]+)$/)[1]);
+
+  /* Convergence assessment */
+  const convMatch=text.match(/CONVERGENCE ASSESSMENT[\s\S]*?={4,}/g);
+  if(convMatch){
+    const last=convMatch[convMatch.length-1];
+    s.converged=last.includes('CONVERGED')&&!last.includes('ISSUE');
+    const issueMatch=last.match(/(\d+) ISSUE/);
+    s.nIssues=issueMatch?parseInt(issueMatch[1]):0;
+    const essMatch=last.match(/Minimum ESS: ([\d.]+) \(([^)]+)\)/);
+    if(essMatch){s.minESS=parseFloat(essMatch[1]);s.minESSParam=essMatch[2]}
+  }
+
+  /* Parameter convergence table — extract all parameter rows */
+  const convBlock=text.match(/Parameter convergence[\s\S]*?(?=Split frequency|={4,})/);
+  if(convBlock){
+    const tlMatch=convBlock[0].match(/^\s+TL\s+([\d.]+)/m);
+    if(tlMatch) s.tlESS=parseFloat(tlMatch[1]);
+    s.paramConv=[];
+    for(const line of convBlock[0].split('\n')){
+      const m=line.match(/^\s+(\S+)\s+([\d.]+|N\/A)\s+([\d.]+|N\/A)\s+([\d.]+|N\/A)/);
+      if(m&&m[1]!=='Parameter'&&m[1]!=='---------')
+        s.paramConv.push({name:m[1],minESS:m[2],avgESS:m[3],psrf:m[4]});
+    }
+    if(!s.paramConv.length) delete s.paramConv;
+  }
+
+  /* Estimated weight convergence */
+  const wBlock=text.match(/Estimated weight convergence[\s\S]*?(?=={4,})/);
+  if(wBlock){
+    s.weightConv=[];
+    for(const line of wBlock[0].split('\n')){
+      const m=line.match(/^\s+(w\([^)]+\))\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+(\S+)/);
+      if(m) s.weightConv.push({name:m[1],mean:parseFloat(m[2]),stddev:parseFloat(m[3]),ess:parseFloat(m[4]),status:m[5]});
+    }
+    if(!s.weightConv.length) delete s.weightConv;
+  }
+
+  /* Clade posteriors from sumt output */
+  const cladeLines=[];
+  /* Parse the bipartition table: look for lines with partition patterns and probabilities */
+  const taxaMap={};
+  const taxaBlock=text.match(/List of taxa in bipartitions:[\s\S]*?(?=\n\s*Key)/);
+  if(taxaBlock){
+    for(const line of taxaBlock[0].split('\n')){
+      const m=line.match(/^\s+(\d+)\s+--\s+(\S+)/);
+      if(m)taxaMap[parseInt(m[1])]=m[2];
+    }
+  }
+  const partKey={};
+  const keyBlock=text.match(/Key to taxon bipartitions[\s\S]*?(?=\n\s*Summary stat)/);
+  if(keyBlock){
+    for(const line of keyBlock[0].split('\n')){
+      const m=line.match(/^\s+(\d+)\s+--\s+([.*]+)/);
+      if(m){
+        const id=parseInt(m[1]),pattern=m[2],taxa=[];
+        for(let i=0;i<pattern.length;i++)
+          if(pattern[i]==='*'&&taxaMap[i+1])taxa.push(taxaMap[i+1]);
+        if(taxa.length>=2&&taxa.length<Object.keys(taxaMap).length)
+          partKey[id]=taxa;
+      }
+    }
+  }
+  /* Parse tstat-style probability lines from output.
+     Single-run format: "  ID  #obs  Probab."  (3 columns)
+     Multi-run format:  "  ID  #obs  Probab.  Stddev  Min  Max  Nruns" */
+  const probLines=text.match(/^ {2,}\d+\s+\d+\s+\d+\.\d+/gm);
+  if(probLines){
+    for(const line of probLines){
+      const m=line.match(/^\s*(\d+)\s+\d+\s+([\d.e+-]+)/);
+      if(m&&partKey[parseInt(m[1])]){
+        cladeLines.push({taxa:partKey[parseInt(m[1])],prob:parseFloat(m[2])});
+      }
+    }
+  }
+  if(cladeLines.length)s.clades=cladeLines;
+
+  /* Credible sets of trees */
+  const credMatch=text.match(/Credible sets of trees \((\d+) trees sampled\):[\s\S]*?(?=\n\s*\n|\n\s*[A-Z])/);
+  if(credMatch){
+    s.credibleSets={};
+    s.credibleSets.nSampled=parseInt(credMatch[1]);
+    const pcts=credMatch[0].match(/(\d+) % credible set contains (\d+) trees?/g);
+    if(pcts) for(const p of pcts){
+      const m=p.match(/(\d+) % credible set contains (\d+)/);
+      if(m) s.credibleSets[m[1]]=parseInt(m[2]);
+    }
+  }
+
+
+
+  /* Consensus tree phylogram */
+  const ph=text.match(/Phylogram[\s\S]*?expected changes per site/);
+  if(ph)s.phylogram=ph[0].split('\n').filter(l=>l.match(/[|\\\/+\-]/)||l.match(/^\s+\w+\s*\(\d+\)/)||l.match(/expected changes/)).join('\n');
+
+  /* Diagnostic sections — parse into structured data */
+  const cdMatch=text.match(/CHARACTER LIKELIHOOD CONTRIBUTIONS[\s\S]*?(?=\n\s*CLADE-CHARACTER|\n\s*WEIGHT|\n\s*CONSISTENCY|\n\s*ANCESTRAL|\n\s*yvyra|$)/);
+  if(cdMatch){
+    s.chardiag=[];
+    for(const line of cdMatch[0].split('\n')){
+      const m=line.match(/^\s{3}(\S+)\s+([-\d.]+)\s+([\d.]+)%/);
+      if(m) s.chardiag.push({name:m[1],meanLnL:parseFloat(m[2]),proportion:parseFloat(m[3])});
+    }
+    if(!s.chardiag.length) delete s.chardiag;
+  }
+  const csMatch=text.match(/CLADE-CHARACTER SUPPORT[\s\S]*?(?=\n\s*WEIGHT|\n\s*CONSISTENCY|\n\s*ANCESTRAL|\n\s*yvyra|$)/);
+  if(csMatch){
+    s.cladeSupport={rows:[]};
+    const cladeHdr=csMatch[0].match(/SUPPORT for \{([^}]+)\}/);
+    if(cladeHdr) s.cladeSupport.clade=cladeHdr[1];
+    const probHdr=csMatch[0].match(/probability: ([\d.]+)/);
+    if(probHdr) s.cladeSupport.prob=parseFloat(probHdr[1]);
+    for(const line of csMatch[0].split('\n')){
+      const m=line.match(/^\s{3}(\S+)\s+([-\d.]+)\s+(SUPPORTS|CONFLICTS)/);
+      if(m) s.cladeSupport.rows.push({name:m[1],support:parseFloat(m[2]),direction:m[3]});
+    }
+    if(!s.cladeSupport.rows.length) delete s.cladeSupport;
+  }
+  const seMatch=text.match(/WEIGHT SENSITIVITY[\s\S]*?(?=\n\s*CONSISTENCY|\n\s*ANCESTRAL|\n\s*CHARACTER|\n\s*yvyra|$)/);
+  if(seMatch){
+    s.sensitivity={rows:[]};
+    const sensClade=seMatch[0].match(/SENSITIVITY for \{([^}]+)\}/);
+    if(sensClade) s.sensitivity.clade=sensClade[1];
+    const baseline=seMatch[0].match(/Baseline.*?: ([\d.]+)/);
+    if(baseline) s.sensitivity.baseline=parseFloat(baseline[1]);
+    for(const line of seMatch[0].split('\n')){
+      const m=line.match(/^\s{3}(\S+)\s+([\d.]+)\s+([+-][\d.]+)/);
+      if(m) s.sensitivity.rows.push({name:m[1],probWithout:parseFloat(m[2]),delta:parseFloat(m[3])});
+    }
+    if(!s.sensitivity.rows.length) delete s.sensitivity;
+  }
+  const ciMatch=text.match(/CONSISTENCY INDEX[\s\S]*?(?=\n\s*ANCESTRAL|\n\s*CHARACTER|\n\s*CLADE|\n\s*WEIGHT|\n\s*yvyra|$)/);
+  if(ciMatch){
+    s.ci={rows:[]};
+    const mapInfo=ciMatch[0].match(/MAP tree from sample \d+ \(lnL = ([-\d.]+)\)/);
+    if(mapInfo) s.ci.mapLnL=parseFloat(mapInfo[1]);
+    for(const line of ciMatch[0].split('\n')){
+      const m=line.match(/^\s{3}(\S+)\s+(\d+)\s+(\d+)\s+([\d.]+)/);
+      if(m) s.ci.rows.push({name:m[1],steps:parseInt(m[2]),minSteps:parseInt(m[3]),ci:parseFloat(m[4])});
+    }
+    if(!s.ci.rows.length) delete s.ci;
+  }
+  /* Parse ASR entropy into structured data */
+  const arBlock=text.match(/ANCESTRAL STATE ENTROPY[\s\S]*?(?=\n\s*CHARACTER|\n\s*CLADE|\n\s*WEIGHT|\n\s*CONSISTENCY|\n\s*yvyra|$)/);
+  if(arBlock){
+    const arText=arBlock[0];
+    /* Extract metadata line */
+    const metaMatch=arText.match(/(\d+) post-burnin trees.*?(\d+) taxa.*?(\d+) internal/);
+    const mapMatch=arText.match(/MAP tree \(sample \d+, lnL = ([-\d.]+)\)/);
+    s.asrMeta={};
+    if(metaMatch){s.asrMeta.nTrees=parseInt(metaMatch[1]);s.asrMeta.nTaxa=parseInt(metaMatch[2]);s.asrMeta.nNodes=parseInt(metaMatch[3])}
+    if(mapMatch) s.asrMeta.mapLnL=parseFloat(mapMatch[1]);
+    /* Split into character blocks */
+    const charBlocks=arText.split(/\n\s*Character:\s*/);
+    s.asrChars=[];
+    for(let b=1;b<charBlocks.length;b++){
+      const lines=charBlocks[b].split('\n');
+      const hdr=lines[0].match(/^(\S+)\s+\((\d+) states?\)/);
+      if(!hdr) continue;
+      const char={name:hdr[1],nStates:parseInt(hdr[2]),nodes:[]};
+      for(let j=1;j<lines.length;j++){
+        const line=lines[j];
+        /* Match data rows: node name followed by floats */
+        /* Node names are in leading position, may contain parens, commas, plus signs */
+        const rm=line.match(/^\s{3}(\S.*?)\s{2,}([\d.]+\s.*)/);
+        if(!rm) continue;
+        const nodeName=rm[1].trim();
+        if(nodeName==='----'||nodeName==='Node') continue;
+        /* Parse the values from the remainder */
+        const vals=rm[2].trim().split(/\s+/);
+        /* Values: nStates probs, then Entropy, Conf, Best, CI_lo, CI_hi */
+        const nS=char.nStates;
+        if(vals.length<nS+4) continue;
+        const entropy=parseFloat(vals[nS]);
+        const conf=parseFloat(vals[nS+1]);
+        const best=vals[nS+2];
+        const ciLo=parseFloat(vals[nS+3]);
+        const ciHi=parseFloat(vals[nS+4]);
+        char.nodes.push({node:nodeName,entropy,conf,best,ciLo,ciHi});
+      }
+      if(char.nodes.length) s.asrChars.push(char);
+    }
+    if(!s.asrChars.length) delete s.asrChars;
+  }
+
+  return s;
+}
+
+function renderSummary(s){
+  const p=document.getElementById('summary');
+  let h='<h3>Results';
+
+  /* Convergence badge */
+  if(s.converged!==undefined){
+    if(s.converged)
+      h+='<span class="convergence-badge badge-ok">CONVERGED</span>';
+    else if(s.nIssues)
+      h+='<span class="convergence-badge badge-warn">'+s.nIssues+' issue'+(s.nIssues>1?'s':'')+'</span>';
+  }
+  h+='</h3>';
+
+  /* Run overview table */
+  if(s.bestLnL||s.tlESS!==undefined){
+    h+='<table class="results-table"><tr><th>Metric</th><th>Value</th><th>Status</th></tr>';
+    if(s.bestLnL){
+      const val=s.bestLnL.length===1?s.bestLnL[0].toFixed(2):s.bestLnL.map((v,i)=>'Run '+(i+1)+': '+v.toFixed(2)).join(', ');
+      h+='<tr><td>Best log-likelihood</td><td>'+val+'</td><td></td></tr>';
+    }
+    if(s.tlESS!==undefined){
+      const cls=s.tlESS<100?'badge-bad':s.tlESS<200?'badge-warn':'badge-ok';
+      const lvl=s.tlESS<100?'LOW':s.tlESS<200?'marginal':'ok';
+      h+='<tr><td>Tree length (ESS)</td><td>'+s.tlESS.toFixed(1)+'</td>';
+      h+='<td><span class="convergence-badge '+cls+'">'+lvl+'</span></td></tr>';
+    }
+    h+='</table>';
+  }
+
+  /* Clade posteriors + credible sets */
+  if(s.clades&&s.clades.length){
+    h+='<details open><summary>Clade Support</summary>';
+    h+='<table class="results-table"><tr><th>Clade</th><th>Posterior</th><th>Support</th></tr>';
+    for(const c of s.clades.sort((a,b)=>b.prob-a.prob)){
+      const pct=(c.prob*100).toFixed(1)+'%';
+      const lvl=c.prob>=.95?'strong':c.prob>=.75?'moderate':c.prob>=.50?'weak':'poor';
+      const cls=c.prob>=.95?'badge-ok':c.prob>=.75?'badge-warn':'badge-bad';
+      h+='<tr><td>('+c.taxa.join(', ')+')</td><td>'+pct+'</td>';
+      h+='<td><span class="convergence-badge '+cls+'">'+lvl+'</span></td></tr>';
+    }
+    h+='</table>';
+    if(s.credibleSets){
+      h+='<p style="font-size:.82rem;color:var(--muted);margin-top:.5rem">';
+      h+=s.credibleSets.nSampled+' unique trees sampled. ';
+      if(s.credibleSets['95']) h+='95% credible set: '+s.credibleSets['95']+' trees. ';
+      if(s.credibleSets['50']) h+='50% credible set: '+s.credibleSets['50']+' trees.';
+      h+='</p>';
+    }
+    h+='</details>';
+  } else if(s.credibleSets){
+    h+='<details open><summary>Tree Credible Sets ('+s.credibleSets.nSampled+' trees sampled)</summary>';
+    h+='<table class="results-table"><tr><th>Credibility</th><th>Trees</th></tr>';
+    for(const pct of ['50','90','95','99'])
+      if(s.credibleSets[pct]!==undefined)
+        h+='<tr><td>'+pct+'%</td><td>'+s.credibleSets[pct]+'</td></tr>';
+    h+='</table></details>';
+  }
+
+  /* Consensus tree — SVG if .con.tre available, ASCII fallback */
+  const conTreKey=Object.keys(outputFiles).find(k=>k.endsWith('.con.tre'));
+  if(conTreKey){
+    h+='<details open><summary>Consensus Tree</summary>';
+    h+='<div class="tree-svg-wrap" id="treeContainer"></div>';
+    h+='<div class="tree-note">Tree shown with arbitrary rooting</div>';
+    h+='<div class="tree-export"><a onclick="downloadTreeSVG()">Download SVG</a></div>';
+    h+='</details>';
+  } else if(s.phylogram){
+    h+='<details open><summary>Consensus Tree</summary><div class="consensus-tree">'+esc(s.phylogram)+'</div></details>';
+  }
+
+  /* Convergence diagnostics — parameter convergence as HTML table */
+  if(s.paramConv){
+    h+='<details open><summary>Convergence Diagnostics</summary>';
+    h+='<table class="results-table"><tr><th>Parameter</th><th>min ESS</th><th>avg ESS</th><th>PSRF</th><th>Status</th></tr>';
+    for(const r of s.paramConv){
+      const ess=parseFloat(r.minESS);
+      const psrf=parseFloat(r.psrf);
+      let lvl='ok',cls='badge-ok';
+      if(isNaN(ess)||ess<100){lvl='LOW';cls='badge-bad'}
+      else if(ess<200){lvl='marginal';cls='badge-warn'}
+      if(!isNaN(psrf)&&psrf>1.05){lvl='HIGH PSRF';cls='badge-bad'}
+      h+='<tr><td>'+esc(r.name)+'</td><td>'+esc(r.minESS)+'</td><td>'+esc(r.avgESS)+'</td><td>'+esc(r.psrf)+'</td>';
+      h+='<td><span class="convergence-badge '+cls+'">'+lvl+'</span></td></tr>';
+    }
+    h+='</table></details>';
+  }
+
+  /* Estimated weight posteriors */
+  if(s.weightConv){
+    h+='<details open><summary>Estimated Weights</summary>';
+    h+='<table class="results-table"><tr><th>Weight</th><th>Mean</th><th>Std Dev</th><th>ESS</th><th>Status</th></tr>';
+    for(const w of s.weightConv){
+      const cls=w.ess<100?'badge-bad':w.ess<200?'badge-warn':'badge-ok';
+      const lvl=w.ess<100?'LOW':w.ess<200?'marginal':'ok';
+      h+='<tr><td>'+esc(w.name)+'</td><td>'+w.mean.toFixed(4)+'</td><td>'+w.stddev.toFixed(4)+'</td>';
+      h+='<td>'+w.ess.toFixed(1)+'</td>';
+      h+='<td><span class="convergence-badge '+cls+'">'+lvl+'</span></td></tr>';
+    }
+    h+='</table></details>';
+  }
+
+  /* Character Likelihood Contributions */
+  if(s.chardiag){
+    h+='<details open><summary>Character Likelihood Contributions</summary>';
+    h+='<table class="results-table"><tr><th>Character</th><th>Mean lnL</th><th>Proportion</th></tr>';
+    for(const r of s.chardiag)
+      h+='<tr><td>'+esc(r.name)+'</td><td>'+r.meanLnL.toFixed(4)+'</td><td>'+r.proportion.toFixed(1)+'%</td></tr>';
+    h+='</table></details>';
+  }
+
+  /* Clade-Character Support */
+  if(s.cladeSupport){
+    h+='<details open><summary>Clade-Character Support';
+    if(s.cladeSupport.clade) h+=' <span style="font-weight:normal;color:var(--muted)">for {'+esc(s.cladeSupport.clade)+'}</span>';
+    h+='</summary>';
+    if(s.cladeSupport.prob!==undefined)
+      h+='<p style="font-size:.82rem;color:var(--muted);margin:.3rem 0 .5rem">Clade posterior probability: '+s.cladeSupport.prob.toFixed(4)+'</p>';
+    h+='<table class="results-table"><tr><th>Character</th><th>Support</th><th>Direction</th></tr>';
+    for(const r of s.cladeSupport.rows){
+      const cls=r.direction==='SUPPORTS'?'badge-ok':'badge-bad';
+      h+='<tr><td>'+esc(r.name)+'</td><td>'+r.support.toFixed(4)+'</td>';
+      h+='<td><span class="convergence-badge '+cls+'">'+r.direction+'</span></td></tr>';
+    }
+    h+='</table></details>';
+  }
+
+  /* Weight Sensitivity */
+  if(s.sensitivity){
+    h+='<details open><summary>Weight Sensitivity';
+    if(s.sensitivity.clade) h+=' <span style="font-weight:normal;color:var(--muted)">for {'+esc(s.sensitivity.clade)+'}</span>';
+    h+='</summary>';
+    if(s.sensitivity.baseline!==undefined)
+      h+='<p style="font-size:.82rem;color:var(--muted);margin:.3rem 0 .5rem">Baseline clade probability: '+s.sensitivity.baseline.toFixed(4)+'</p>';
+    h+='<table class="results-table"><tr><th>Character</th><th>Prob without</th><th>Delta</th></tr>';
+    for(const r of s.sensitivity.rows)
+      h+='<tr><td>'+esc(r.name)+'</td><td>'+r.probWithout.toFixed(4)+'</td><td>'+(r.delta>=0?'+':'')+r.delta.toFixed(4)+'</td></tr>';
+    h+='</table></details>';
+  }
+
+  /* Consistency Index */
+  if(s.ci){
+    h+='<details open><summary>Consistency Index</summary>';
+    if(s.ci.mapLnL!==undefined)
+      h+='<p style="font-size:.82rem;color:var(--muted);margin:.3rem 0 .5rem">MAP tree lnL: '+s.ci.mapLnL.toFixed(4)+'</p>';
+    h+='<table class="results-table"><tr><th>Character</th><th>Steps</th><th>Min steps</th><th>CI</th></tr>';
+    for(const r of s.ci.rows){
+      const cls=r.ci>=1.0?'badge-ok':r.ci>=0.5?'badge-warn':'badge-bad';
+      h+='<tr><td>'+esc(r.name)+'</td><td>'+r.steps+'</td><td>'+r.minSteps+'</td>';
+      h+='<td><span class="convergence-badge '+cls+'">'+r.ci.toFixed(3)+'</span></td></tr>';
+    }
+    h+='</table></details>';
+  }
+
+  /* Ancestral State Entropy — per-character collapsible tables */
+  if(s.asrChars){
+    h+='<details open><summary>Ancestral State Entropy</summary>';
+    if(s.asrMeta){
+      h+='<p style="font-size:.82rem;color:var(--muted);margin:.3rem 0 .6rem">';
+      h+=s.asrMeta.nTrees+' post-burnin trees, '+s.asrMeta.nTaxa+' taxa, '+s.asrMeta.nNodes+' internal nodes';
+      if(s.asrMeta.mapLnL) h+='. MAP tree lnL: '+s.asrMeta.mapLnL.toFixed(2);
+      h+='</p>';
+    }
+    for(const ch of s.asrChars){
+      h+='<details><summary style="font-size:.88rem;cursor:pointer;padding:.2rem 0">'+esc(ch.name)+' <span style="color:var(--muted);font-size:.78rem">('+ch.nStates+' states)</span></summary>';
+      h+='<table class="results-table"><tr><th>Node</th><th>Best state</th><th>Confidence</th><th>Entropy</th><th>95% CI</th></tr>';
+      for(const n of ch.nodes){
+        const cls=n.conf>=0.9?'badge-ok':n.conf>=0.5?'badge-warn':'badge-bad';
+        h+='<tr><td style="font-family:Consolas,monospace;font-size:.78rem">'+esc(n.node)+'</td>';
+        h+='<td>'+esc(n.best)+'</td>';
+        h+='<td><span class="convergence-badge '+cls+'">'+n.conf.toFixed(2)+'</span></td>';
+        h+='<td>'+n.entropy.toFixed(4)+'</td>';
+        h+='<td style="font-size:.78rem">'+n.ciLo.toFixed(2)+' – '+n.ciHi.toFixed(2)+'</td></tr>';
+      }
+      h+='</table></details>';
+    }
+    h+='</details>';
+  }
+
+  p.innerHTML=h;p.style.display='block';
+  /* Render SVG tree after DOM insertion */
+  if(conTreKey) renderTreeSVG('treeContainer',outputFiles[conTreKey]);
+}
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+/* ---- Consensus tree SVG renderer ---- */
+
+function parseConTre(nexus){
+  /* Extract translate table */
+  const trans={};
+  const trBlock=nexus.match(/translate\s*\n([\s\S]*?);/i);
+  if(trBlock){
+    for(const line of trBlock[1].split('\n')){
+      const m=line.match(/^\s*(\d+)\s+(\S+?),?\s*$/);
+      if(m) trans[m[1]]=m[2];
+    }
+  }
+  /* Extract Newick string */
+  const treeMatch=nexus.match(/tree\s+\S+\s*=\s*(?:\[&[^\]]*\]\s*)?(.*);/i);
+  if(!treeMatch) return null;
+  return {translate:trans, newick:treeMatch[1].trim()};
+}
+
+function parseNewick(str,translate){
+  let i=0;
+  function readNode(){
+    const node={children:[],length:0,prob:null,name:''};
+    if(str[i]==='('){
+      i++; /* skip ( */
+      node.children.push(readNode());
+      while(str[i]===','){i++;node.children.push(readNode())}
+      i++; /* skip ) */
+    }
+    /* Read label (numeric ID or empty for internal) */
+    let label='';
+    while(i<str.length&&str[i]!==':'&&str[i]!==','&&str[i]!==')'&&str[i]!=='('&&str[i]!=='[')
+      label+=str[i++];
+    label=label.trim();
+    if(label&&translate[label]) node.name=translate[label];
+    else if(label) node.name=label;
+    /* Read annotations [&...] — may appear before or after :length */
+    while(i<str.length&&str[i]==='['){
+      const start=i;
+      let depth=1;i++;
+      while(i<str.length&&depth>0){if(str[i]==='[')depth++;if(str[i]===']')depth--;i++}
+      const ann=str.slice(start+1,i-1);
+      const pm=ann.match(/prob=([\d.eE+-]+)/);
+      if(pm) node.prob=parseFloat(pm[1]);
+    }
+    /* Read branch length */
+    if(i<str.length&&str[i]===':'){
+      i++;
+      let lenStr='';
+      while(i<str.length&&str[i]!==','&&str[i]!==')'&&str[i]!=='('&&str[i]!=='[')
+        lenStr+=str[i++];
+      node.length=parseFloat(lenStr)||0;
+    }
+    /* Read post-length annotations [&length_mean=...] */
+    while(i<str.length&&str[i]==='['){
+      let depth=1;i++;
+      while(i<str.length&&depth>0){if(str[i]==='[')depth++;if(str[i]===']')depth--;i++}
+    }
+    return node;
+  }
+  return readNode();
+}
+
+function layoutTree(root){
+  /* Assign tip positions and compute cumulative x (branch length from root) */
+  let tipCount=0;
+  function assignX(node,cumLen){
+    node.x=cumLen+node.length;
+    if(node.children.length===0){
+      node.y=tipCount++;
+      node.isTip=true;
+    } else {
+      for(const c of node.children) assignX(c,node.x);
+      node.y=(node.children[0].y+node.children[node.children.length-1].y)/2;
+      node.isTip=false;
+    }
+  }
+  assignX(root,0);
+  /* Find max x for scaling */
+  let maxX=0;
+  function walkMax(n){if(n.x>maxX)maxX=n.x;for(const c of n.children)walkMax(c)}
+  walkMax(root);
+  return {root,tipCount,maxX};
+}
+
+function niceScaleBar(maxX){
+  /* Pick a round number roughly 1/5 of the tree width */
+  const target=maxX/5;
+  const mag=Math.pow(10,Math.floor(Math.log10(target)));
+  const candidates=[1,2,5,10];
+  let best=mag;
+  for(const c of candidates){
+    const v=c*mag;
+    if(Math.abs(v-target)<Math.abs(best-target)) best=v;
+  }
+  return best;
+}
+
+function renderTreeSVG(containerId,nexusText){
+  const container=document.getElementById(containerId);
+  if(!container) return;
+  container.innerHTML='';
+
+  const parsed=parseConTre(nexusText);
+  if(!parsed) return;
+  const root=parseNewick(parsed.newick,parsed.translate);
+  const layout=layoutTree(root);
+
+  const margin={top:15,right:10,bottom:40,left:10};
+  /* Compute label width from longest taxon name */
+  const labelWidth=Math.max(...Object.values(parsed.translate).map(n=>n.length))*7.5+10;
+  const treeWidth=Math.max(300,Math.min(550,container.clientWidth-margin.left-margin.right-labelWidth));
+  const tipSpacing=22;
+  const treeHeight=layout.tipCount*tipSpacing;
+  const width=margin.left+treeWidth+labelWidth+margin.right;
+  const height=margin.top+treeHeight+margin.bottom;
+
+  const xScale=function(v){return margin.left+(layout.maxX>0?v/layout.maxX*treeWidth:0)};
+  const yScale=function(v){return margin.top+v*tipSpacing};
+
+  const svg=d3.select(container).append('svg')
+    .attr('class','tree-svg')
+    .attr('width',width)
+    .attr('height',height)
+    .attr('xmlns','http://www.w3.org/2000/svg');
+
+  /* Draw branches */
+  function drawNode(node){
+    if(node.children.length>0){
+      /* Vertical connector */
+      const yMin=yScale(node.children[0].y);
+      const yMax=yScale(node.children[node.children.length-1].y);
+      svg.append('line')
+        .attr('class','branch')
+        .attr('x1',xScale(node.x)).attr('x2',xScale(node.x))
+        .attr('y1',yMin).attr('y2',yMax);
+      /* Horizontal branches to children */
+      for(const c of node.children){
+        svg.append('line')
+          .attr('class','branch')
+          .attr('x1',xScale(node.x)).attr('x2',xScale(c.x))
+          .attr('y1',yScale(c.y)).attr('y2',yScale(c.y));
+        drawNode(c);
+      }
+      /* Posterior probability label (skip 1.0 and root) */
+      if(node.prob!==null&&node.prob<0.995&&node.x>0){
+        const lbl=node.prob.toFixed(2);
+        const lx=xScale(node.x)-8;
+        const ly=yScale(node.y);
+        const tw=lbl.length*6.2+4;
+        const th=13;
+        svg.append('rect')
+          .attr('class','node-label-bg')
+          .attr('x',lx-tw).attr('y',ly-th/2)
+          .attr('width',tw).attr('height',th);
+        svg.append('text')
+          .attr('class','node-label')
+          .attr('x',lx-tw/2)
+          .attr('y',ly)
+          .attr('text-anchor','middle')
+          .attr('dominant-baseline','central')
+          .text(lbl);
+      }
+    } else {
+      /* Tip label */
+      svg.append('text')
+        .attr('class','tip-label')
+        .attr('x',xScale(node.x)+5)
+        .attr('y',yScale(node.y)+4)
+        .text(node.name);
+    }
+  }
+
+  /* Draw root branch (horizontal from left edge to root) */
+  svg.append('line')
+    .attr('class','branch')
+    .attr('x1',margin.left).attr('x2',xScale(root.x))
+    .attr('y1',yScale(root.y)).attr('y2',yScale(root.y));
+  drawNode(root);
+
+  /* Scale bar */
+  const barVal=niceScaleBar(layout.maxX);
+  const barPx=barVal/layout.maxX*treeWidth;
+  const barY=margin.top+treeHeight+20;
+  svg.append('line')
+    .attr('class','scale-line')
+    .attr('x1',margin.left).attr('x2',margin.left+barPx)
+    .attr('y1',barY).attr('y2',barY);
+  svg.append('line').attr('class','scale-line')
+    .attr('x1',margin.left).attr('x2',margin.left)
+    .attr('y1',barY-3).attr('y2',barY+3);
+  svg.append('line').attr('class','scale-line')
+    .attr('x1',margin.left+barPx).attr('x2',margin.left+barPx)
+    .attr('y1',barY-3).attr('y2',barY+3);
+  svg.append('text')
+    .attr('class','scale-label')
+    .attr('x',margin.left+barPx/2)
+    .attr('y',barY+14)
+    .attr('text-anchor','middle')
+    .text(barVal+' expected changes/site');
+}
+
+function downloadTreeSVG(){
+  const svgEl=document.querySelector('#treeContainer svg');
+  if(!svgEl) return;
+  const clone=svgEl.cloneNode(true);
+  /* Inline styles for standalone SVG */
+  clone.querySelectorAll('.branch').forEach(el=>{el.setAttribute('style','fill:none;stroke:#222;stroke-width:1.5px')});
+  clone.querySelectorAll('.tip-label').forEach(el=>{el.setAttribute('style','font-family:Palatino,Georgia,serif;font-size:11px;fill:#222')});
+  clone.querySelectorAll('.node-label-bg').forEach(el=>{el.setAttribute('style','fill:#f0f0ec;stroke:#ccc;stroke-width:1.2px')});
+  clone.querySelectorAll('.node-label').forEach(el=>{el.setAttribute('style','font-family:Consolas,monospace;font-size:9px;fill:#666')});
+  clone.querySelectorAll('.scale-line').forEach(el=>{el.setAttribute('style','fill:none;stroke:#222;stroke-width:1px')});
+  clone.querySelectorAll('.scale-label').forEach(el=>{el.setAttribute('style','font-family:Consolas,monospace;font-size:9px;fill:#666')});
+  const blob=new Blob(['<?xml version="1.0" encoding="UTF-8"?>\n'+clone.outerHTML],{type:'image/svg+xml'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='consensus_tree.svg';a.click();URL.revokeObjectURL(a.href);
+}
+
+/* ---- Guide ---- */
+function toggleGuide(){
+  const layout=document.getElementById('pageLayout');
+  const btn=document.getElementById('guideBtn');
+  layout.classList.toggle('guide-open');
+  btn.classList.toggle('active');
+  if(editor){
+    const panel=document.getElementById('guidePanel');
+    const refresh=()=>{editor.refresh();panel.removeEventListener('transitionend',refresh)};
+    panel.addEventListener('transitionend',refresh);
+    setTimeout(()=>editor.refresh(),400);/* fallback */
+  }
+}
+
+function initGuide(){
+  if(typeof GUIDE_STEPS==='undefined')return;
+  const container=document.getElementById('guideSteps');
+  let html='';
+  for(let i=0;i<GUIDE_STEPS.length;i++){
+    const s=GUIDE_STEPS[i];
+    const active=i===0?'active':'';
+    html+=`<div class="guide-step ${active}" id="step${i}">
+      <h4 onclick="toggleStep(${i})"><span class="step-num">${i+1}</span>${s.title}</h4>
+      <div class="step-body">${s.content}`;
+    if(s.example)
+      html+=`<button class="load-btn" onclick="loadGuideExample(${i})">Load and Run this example</button>`;
+    html+=`</div></div>`;
+  }
+  container.innerHTML=html;
+}
+
+function toggleStep(idx){
+  const el=document.getElementById('step'+idx);
+  el.classList.toggle('active');
+}
+
+function loadGuideExample(idx){
+  if(typeof GUIDE_STEPS==='undefined')return;
+  const yaml=GUIDE_STEPS[idx].example;
+  if(!yaml)return;
+  if(editorDirty&&!confirm('Replace editor content with guide example?'))return;
+  setEd(yaml);
+  document.getElementById('examples').value='';
+  lastLoadedExample='';
+  /* Close guide on mobile */
+  if(window.innerWidth<900){
+    document.getElementById('pageLayout').classList.remove('guide-open');
+    document.getElementById('guideBtn').classList.remove('active');
+  }
+  /* Auto-run after loading */
+  if(!document.getElementById('runBtn').disabled) runAnalysis();
+}
+
+initGuide();
+initEditor();initWorker();
+</script>
+</body>
+</html>

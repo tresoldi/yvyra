@@ -1,0 +1,29 @@
+# Test estimated character weights
+
+name: estweight_test
+
+taxa:
+  - id: A
+  - id: B
+  - id: C
+  - id: D
+  - id: E
+
+characters:
+  - id: char1
+    weight: estimated
+    data: {A: x, B: x, C: y, D: y, E: x}
+  - id: char2
+    weight: estimated
+    data: {A: x, B: y, C: y, D: x, E: y}
+  - id: char3
+    weight: 1.0
+    data: {A: y, B: x, C: x, D: y, E: x}
+  - id: char4
+    data: {A: x, B: x, C: y, D: y, E: y}
+
+analysis:
+  coding: variable
+  seed: 42
+  iterations: 1000
+  sample_frequency: 50

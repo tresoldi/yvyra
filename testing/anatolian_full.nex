@@ -1,0 +1,152 @@
+#NEXUS
+
+[ Anatolian Full Analysis - Billing & Elgh (2023)
+  27 characters, 5 taxa, 6 asymmetric evolution models
+  Translated from yvyra Python YAML to Nexus format for yvyra-c
+
+  Characters encoded as integers (state indices).
+  Cost matrices converted to rates via rate = 1/cost.
+
+  Characters using one_way model:
+    2-state chars use one_way_2 (states 0,1)
+    3-state chars (gen_ers, encl_du) use their own 3-state models
+
+  Polymorphic state (gen_ers/Palaic = {no_ers:0.6, ers_primary:0.4})
+  encoded as ? (missing) since confidence tips not yet implemented. ]
+
+Begin data;
+    Dimensions ntax=5 nchar=27;
+    Format datatype=standard symbols="0 1 2" missing=? gap=-;
+
+[ Character order:
+   1  len_fric       (fortition_lenition, 2-state: 0=conservative, 1=lenited)
+   2  eh1_a          (one_way_2, 2-state: 0=laryngeal_preserved, 1=colored_to_a)
+   3  ye_yi          (one_way_2, 2-state: 0=ye_preserved, 1=raised_to_yi)
+   4  centum         (one_way_2, 2-state: 0=satem_palatalization, 1=centum_preservation)
+   5  irreg_s_t      (one_way_2, 2-state: 0=regular, 1=irregular_alternation)
+   6  g_y_front      (one_way_2, 2-state: 0=g_preserved, 1=palatalized)
+   7  init_gw_w      (one_way_2, 2-state: 0=gw_preserved, 1=w_only)
+   8  med_gw_w       (one_way_2, 2-state: 0=gw_preserved, 1=w_only)
+   9  tn_nn          (one_way_2, 2-state: 0=tn_preserved, 1=assimilated_nn)
+  10  cop            (one_way_2, 2-state: 0=conservative, 1=innovative)
+  11  lar_phon       (fortition_lenition, 2-state: 0=conservative, 1=innovative)
+  12  sh_s           (one_way_2, 2-state: 0=distinct, 1=merged)
+  13  innov_nsi      (one_way_2, 2-state: 0=conservative, 1=nsi_ending)
+  14  gen_ha         (one_way_2, 2-state: 0=absent, 1=present)
+  15  gen_u          (one_way_2, 2-state: 0=absent, 1=present)
+  16  gen_ers        (third_pl_allomorph, 3-state: 0=no_ers, 1=ers_secondary, 2=ers_primary)
+  17  gen_to         (one_way_2, 2-state: 0=absent, 1=present)
+  18  ablins_Vdi     (symmetric/default, 2-state: 0=absent, 1=present)
+  19  nza_abl        (nti, 2-state: 0=absent, 1=present)
+  20  lose_ont       (one_way_2, 2-state: 0=retained, 1=lost)
+  21  encl_du        (tu_pronoun, 3-state: 0=no_dual, 1=partial_dual, 2=full_dual)
+  22  i_mut          (one_way_2, 2-state: 0=absent, 1=present)
+  23  a_o_stem_merge (one_way_2, 2-state: 0=distinct, 1=merged)
+  24  len_e_stem     (four_w_allomorphy, 2-state: 0=conservative, 1=lenited)
+  25  nu_stem_hi     (symmetric/default, 2-state: 0=absent, 1=present)
+  26  gen_genadj     (symmetric/default, 2-state: 0=genitive_only, 1=adjectival_use)
+  27  lex_tuw        (one_way_2, 2-state: 0=absent, 1=present)
+]
+
+    Matrix
+[         123456789012345678901234567 ]
+Hittite   000100001010000100100010000
+Palaic    001100001010010?00102010?0?
+Lydian    11110??1??011011?0011101001
+Luwian    ??1011110110111211012100111
+Lycian    11101111?101111211012101111
+    ;
+End;
+
+[ Note: Palaic gen_ers (char 16) is ? in the matrix; confidence weights
+  specified via tipweights command below (no_ers:0.6, ers_primary:0.4).
+  Palaic lex_tuw (char 27) is ? (missing).
+  Lydian chars 6,7,9,10,17 are ? (missing).
+  Other ? marks indicate missing data per the original YAML. ]
+
+Begin yvyra;
+    set autoclose=yes nowarnings=yes;
+    set seed=1005;
+
+    [ Character names for diagnostic output ]
+    charlabels
+        1=len_fric 2=eh1_a 3=ye_yi 4=centum 5=irreg_s_t
+        6=g_y_front 7=init_gw_w 8=med_gw_w 9=tn_nn 10=cop
+        11=lar_phon 12=sh_s 13=innov_nsi 14=gen_ha 15=gen_u
+        16=gen_ers 17=gen_to 18=ablins_Vdi 19=nza_abl 20=lose_ont
+        21=encl_du 22=i_mut 23=a_o_stem_merge 24=len_e_stem 25=nu_stem_hi
+        26=gen_genadj 27=lex_tuw
+    ;
+
+    [ Define asymmetric cost matrices (Billing & Elgh 2023)
+      Costs are converted to rates internally: rate = 1/cost ]
+
+    [ one_way: innovation cost 1, reversal cost 100 ]
+    usercost one_way_2 (Standard) = 2
+        0   1
+        100 0
+    ;
+
+    [ fortition_lenition: lenition cost 1, fortition cost 2 ]
+    usercost fort_len (Standard) = 2
+        0 1
+        2 0
+    ;
+
+    [ third person plural allomorph: 3-state with irreversibility ]
+    usercost third_pl (Standard) = 3
+        0   1   3
+        100 0   3
+        100 100 0
+    ;
+
+    [ four-way allomorphy: forward cost 4, reverse cost 1 ]
+    usercost four_w (Standard) = 2
+        0 4
+        1 0
+    ;
+
+    [ tu-pronoun: 3-state with partial irreversibility ]
+    usercost tu_pron (Standard) = 3
+        0   2   4
+        100 0   4
+        100 2   0
+    ;
+
+    [ nti morphological process: same as fortition_lenition ]
+    usercost nti_morph (Standard) = 2
+        0 1
+        2 0
+    ;
+
+    [ Assign models to characters ]
+    ctype fort_len: 1 11;
+    ctype one_way_2: 2 3 4 5 6 7 8 9 10 12 13 14 15 17 20 22 23 27;
+    ctype third_pl: 16;
+    ctype four_w: 24;
+    ctype tu_pron: 21;
+    ctype nti_morph: 19;
+    [ Characters 18, 25, 26 use default symmetric Mk model ]
+
+    [ Character weights from Billing & Elgh (2023)
+      3:ye_yi=2, 5:irreg_s_t=3, 6:g_y_front=2, 10:cop=3,
+      13:innov_nsi=4, 17:gen_to=3, 22:i_mut=4, 25:nu_stem_hi=2, 27:lex_tuw=3 ]
+    wtset * = 3:2 5:3 6:2 10:3 13:4 17:3 22:4 25:2 27:3;
+
+    [ Confidence-weighted tip: Palaic gen_ers (char 16)
+      {no_ers(0):0.6, ers_primary(2):0.4} from Billing & Elgh (2023) ]
+    tipweights Palaic 16 = 0:0.6 2:0.4;
+
+    [ Model settings ]
+    lset coding=variable;
+
+    [ Per-site log-likelihoods for downstream analysis ]
+    report sitelikes=yes;
+
+    [ MCMC settings ]
+    mcmcp nrun=2 nchain=2 ngen=50000 samplefr=50;
+    mcmcp printfr=5000 diagnfr=5000;
+    mcmc;
+    sump;
+    sumt;
+End;

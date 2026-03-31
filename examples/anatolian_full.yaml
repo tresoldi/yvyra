@@ -1,0 +1,307 @@
+# Full Anatolian analysis — Billing & Elgh (2023)
+# 5 taxa, 27 characters, 6 asymmetric models, differential weights
+# Adapted from anat2_210823.nex
+
+name: anatolian_full
+
+taxa:
+  - id: hit
+    name: Hittite
+  - id: pal
+    name: Palaic
+  - id: lyd
+    name: Lydian
+  - id: luw
+    name: Luwian
+  - id: lyc
+    name: Lycian
+
+models:
+  one_way:
+    costs:
+      conservative:  0      1.0    1.0
+      intermediate:  100.0  0      1.0
+      innovative:    100.0  100.0  0
+  fort_len:
+    costs:
+      conservative:  0    1.0
+      lenited:       2.0  0
+  nti:
+    costs:
+      conservative:  0    1.0
+      innovative:    2.0  0
+  third_pl:
+    costs:
+      no_ers:         0       1.0    3.0
+      ers_secondary:  100.0   0      3.0
+      ers_primary:    100.0   100.0  0
+  four_w:
+    costs:
+      conservative:  0    4.0
+      innovative:    1.0  0
+  tu_pronoun:
+    costs:
+      type_a:    0      2.0    4.0
+      type_b:    100.0  0      4.0
+      type_c:    100.0  2.0    0
+
+characters:
+  # Phonological innovations
+  - id: len_fric
+    model: fort_len
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: lenited
+      luw: ~
+      lyc: lenited
+  - id: eh1_a
+    model: one_way
+    states: [conservative, innovative]
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: innovative
+      luw: ~
+      lyc: innovative
+  - id: ye_yi
+    model: one_way
+    states: [conservative, innovative]
+    weight: 2.0
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: innovative
+      luw: innovative
+      lyc: innovative
+  - id: centum
+    model: one_way
+    states: [conservative, innovative]
+    data:
+      hit: innovative
+      pal: innovative
+      lyd: innovative
+      luw: conservative
+      lyc: conservative
+  - id: irreg_s_t
+    model: one_way
+    states: [conservative, innovative]
+    weight: 4.0
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: conservative
+      luw: innovative
+      lyc: innovative
+  - id: g_y_front
+    model: one_way
+    states: [conservative, innovative]
+    weight: 2.0
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: ~
+      luw: innovative
+      lyc: innovative
+  - id: init_gw_w
+    model: one_way
+    states: [conservative, innovative]
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: ~
+      luw: innovative
+      lyc: innovative
+  - id: med_gw_w
+    model: one_way
+    states: [conservative, innovative]
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: innovative
+      luw: innovative
+      lyc: innovative
+  - id: tn_nn
+    model: one_way
+    states: [conservative, innovative]
+    data:
+      hit: innovative
+      pal: innovative
+      lyd: ~
+      luw: conservative
+      lyc: ~
+  - id: cop
+    model: one_way
+    states: [conservative, innovative]
+    weight: 3.0
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: ~
+      luw: innovative
+      lyc: innovative
+  - id: lar_phon
+    model: fort_len
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: lenited
+      luw: lenited
+      lyc: lenited
+  - id: sh_s
+    model: one_way
+    states: [conservative, innovative]
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: innovative
+      luw: conservative
+      lyc: innovative
+  # Morphological innovations
+  - id: innov_nsi
+    model: one_way
+    states: [conservative, innovative]
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: innovative
+      luw: innovative
+      lyc: innovative
+  - id: gen_ha
+    model: one_way
+    states: [conservative, innovative]
+    data:
+      hit: conservative
+      pal: innovative
+      lyd: conservative
+      luw: innovative
+      lyc: innovative
+  - id: gen_u
+    model: one_way
+    states: [conservative, innovative]
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: innovative
+      luw: innovative
+      lyc: innovative
+  - id: gen_ers
+    model: third_pl
+    weight: 3.0
+    data:
+      hit: no_ers
+      pal: {no_ers: 0.6, ers_primary: 0.4}
+      lyd: ers_secondary
+      luw: ers_primary
+      lyc: ers_primary
+  - id: gen_to
+    model: one_way
+    states: [conservative, innovative]
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: ~
+      luw: innovative
+      lyc: innovative
+  - id: ablins_Vdi
+    model: one_way
+    states: [conservative, innovative]
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: conservative
+      luw: innovative
+      lyc: innovative
+  - id: nza_abl
+    model: nti
+    data:
+      hit: innovative
+      pal: innovative
+      lyd: conservative
+      luw: conservative
+      lyc: conservative
+  - id: lose_ont
+    model: one_way
+    states: [conservative, innovative]
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: innovative
+      luw: innovative
+      lyc: innovative
+  - id: encl_du
+    model: tu_pronoun
+    weight: 4.0
+    data:
+      hit: type_a
+      pal: type_c
+      lyd: type_b
+      luw: type_c
+      lyc: type_c
+  - id: i_mut
+    model: one_way
+    states: [conservative, innovative]
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: innovative
+      luw: innovative
+      lyc: innovative
+  - id: a_o_stem_merge
+    model: one_way
+    states: [conservative, innovative]
+    data:
+      hit: innovative
+      pal: innovative
+      lyd: conservative
+      luw: conservative
+      lyc: conservative
+  - id: len_e_stem
+    model: four_w
+    weight: 2.0
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: innovative
+      luw: conservative
+      lyc: innovative
+  - id: nu_stem_hi
+    model: one_way
+    states: [conservative, innovative]
+    data:
+      hit: conservative
+      pal: ~
+      lyd: conservative
+      luw: innovative
+      lyc: innovative
+  - id: gen_genadj
+    model: one_way
+    states: [conservative, innovative]
+    weight: 3.0
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: conservative
+      luw: innovative
+      lyc: innovative
+  - id: lex_tuw
+    model: one_way
+    states: [conservative, innovative]
+    data:
+      hit: conservative
+      pal: ~
+      lyd: innovative
+      luw: innovative
+      lyc: innovative
+
+analysis:
+  coding: variable
+  seed: 1305
+  iterations: 200000
+  sample_frequency: 100
+  sitelikes: yes
+
+diagnostics:
+  - chardiag: [Lydian, Luwian, Lycian]
+  - sensitivity: [Lydian, Luwian, Lycian]
+  - asr_entropy

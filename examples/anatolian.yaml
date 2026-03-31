@@ -1,0 +1,112 @@
+# Anatolian languages — Billing & Elgh (2023)
+# 5 taxa, 8 characters, 4 asymmetric models
+
+name: anatolian
+
+taxa:
+  - id: hit
+    name: Hittite
+  - id: pal
+    name: Palaic
+  - id: lyd
+    name: Lydian
+  - id: luw
+    name: Luwian
+  - id: lyc
+    name: Lycian
+
+models:
+  fort_len:
+    costs:
+      conservative:  0    1.0
+      lenited:       2.0  0
+  one_way:
+    costs:
+      conservative:  0      1.0
+      innovative:    100.0  0
+  third_pl:
+    costs:
+      no_ers:         0       1.0    3.0
+      ers_secondary:  100.0   0      3.0
+      ers_primary:    100.0   100.0  0
+  nti:
+    costs:
+      conservative:  0    1.0
+      innovative:    2.0  0
+
+characters:
+  - id: len_fric
+    model: fort_len
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: lenited
+      luw: ~
+      lyc: lenited
+  - id: eh1_a
+    model: one_way
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: innovative
+      luw: ~
+      lyc: innovative
+  - id: ye_yi
+    model: one_way
+    weight: 2.0
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: innovative
+      luw: innovative
+      lyc: innovative
+  - id: centum
+    model: one_way
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: innovative
+      luw: conservative
+      lyc: innovative
+  - id: lar_phon
+    model: fort_len
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: lenited
+      luw: lenited
+      lyc: lenited
+  - id: gen_ers
+    model: third_pl
+    data:
+      hit: no_ers
+      pal: {no_ers: 0.6, ers_primary: 0.4}
+      lyd: ers_secondary
+      luw: ers_primary
+      lyc: ers_primary
+  - id: nza_abl
+    model: nti
+    data:
+      hit: conservative
+      pal: conservative
+      lyd: conservative
+      luw: innovative
+      lyc: innovative
+  - id: ablins_Vdi
+    data:
+      hit: absent
+      pal: absent
+      lyd: present
+      luw: present
+      lyc: present
+
+analysis:
+  coding: variable
+  seed: 1305
+  iterations: 10000
+  sample_frequency: 50
+  runs: 1
+  chains: 1
+  print_frequency: 2000
+  diagnostic_frequency: 5000
+  sitelikes: yes

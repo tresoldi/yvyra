@@ -1,0 +1,162 @@
+# Celtic languages with directional evolution models
+# 6 languages, 12 characters, 3 model types
+
+name: asymmetric_celtic
+
+taxa:
+  - id: oir
+    name: Old_Irish
+  - id: wel
+    name: Welsh
+  - id: bre
+    name: Breton
+  - id: sga
+    name: Scottish_Gaelic
+  - id: cor
+    name: Cornish
+  - id: mnx
+    name: Manx
+
+models:
+  # Custom model: innovation easy, reversal nearly impossible
+  one_way:
+    costs:
+      simple:    0      1.0
+      extended:  100.0  0
+
+characters:
+  # All share (Old Irish as archaic outgroup)
+  - id: initial_mutation
+    states: [absent, present]
+    model: loss
+    data:
+      oir: absent
+      wel: present
+      bre: present
+      sga: present
+      cor: present
+      mnx: present
+  - id: verb_initial
+    states: [free, fixed]
+    model: loss
+    data:
+      oir: free
+      wel: fixed
+      bre: fixed
+      sga: fixed
+      cor: fixed
+      mnx: fixed
+  # Brythonic (Welsh, Breton, Cornish)
+  - id: p_lenition
+    states: [preserved, lenited]
+    model: lenition
+    data:
+      oir: preserved
+      wel: lenited
+      bre: lenited
+      sga: preserved
+      cor: lenited
+      mnx: preserved
+  - id: kw_preservation
+    states: [preserved, lost]
+    model: loss
+    data:
+      oir: lost
+      wel: preserved
+      bre: preserved
+      sga: lost
+      cor: preserved
+      mnx: lost
+  - id: internal_inflection
+    states: [preserved, lost]
+    model: loss
+    data:
+      oir: preserved
+      wel: lost
+      bre: lost
+      sga: preserved
+      cor: lost
+      mnx: preserved
+  - id: preposition_conjugation
+    states: [full, reduced]
+    model: lenition
+    data:
+      oir: full
+      wel: reduced
+      bre: reduced
+      sga: full
+      cor: reduced
+      mnx: full
+  # Goidelic (Scottish Gaelic, Manx)
+  - id: lenition_system
+    states: [simple, extended]
+    model: one_way
+    data:
+      oir: simple
+      wel: simple
+      bre: simple
+      sga: extended
+      cor: simple
+      mnx: extended
+  - id: palatalization
+    states: [preserved, simplified]
+    model: lenition
+    data:
+      oir: preserved
+      wel: preserved
+      bre: preserved
+      sga: simplified
+      cor: preserved
+      mnx: simplified
+  - id: dual_number
+    states: [preserved, lost]
+    model: loss
+    data:
+      oir: preserved
+      wel: lost
+      bre: lost
+      sga: lost
+      cor: lost
+      mnx: lost
+  # Welsh + Breton closer
+  - id: aspirate_mutation
+    states: [absent, present]
+    model: one_way
+    data:
+      oir: absent
+      wel: present
+      bre: present
+      sga: absent
+      cor: absent
+      mnx: absent
+  # Mixed signal
+  - id: nasal_mutation
+    states: [productive, residual]
+    model: lenition
+    data:
+      oir: productive
+      wel: productive
+      bre: residual
+      sga: residual
+      cor: residual
+      mnx: residual
+  - id: case_system
+    states: [retained, lost]
+    model: loss
+    data:
+      oir: retained
+      wel: lost
+      bre: lost
+      sga: lost
+      cor: lost
+      mnx: lost
+
+analysis:
+  coding: variable
+  seed: 1305
+  iterations: 50000
+  sample_frequency: 50
+  sitelikes: yes
+
+diagnostics:
+  - chardiag: [Welsh, Breton]

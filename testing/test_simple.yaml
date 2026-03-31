@@ -1,0 +1,58 @@
+# Simple test: 4 taxa, 5 binary characters, symmetric Mk
+name: simple_yaml_test
+
+taxa:
+  - id: A
+    name: LangA
+  - id: B
+    name: LangB
+  - id: C
+    name: LangC
+  - id: D
+    name: LangD
+
+characters:
+  - id: char1
+    data:
+      A: present
+      B: present
+      C: absent
+      D: absent
+
+  - id: char2
+    data:
+      A: absent
+      B: present
+      C: present
+      D: absent
+
+  - id: char3
+    data:
+      A: present
+      B: absent
+      C: absent
+      D: present
+
+  - id: char4
+    data:
+      A: absent
+      B: absent
+      C: present
+      D: present
+
+  - id: char5
+    data:
+      A: present
+      B: absent
+      C: present
+      D: absent
+
+analysis:
+  coding: variable
+  seed: 42
+  iterations: 500
+  sample_frequency: 50
+  runs: 1
+  chains: 1
+  print_frequency: 500
+  diagnostic_frequency: 500

@@ -1,0 +1,26 @@
+#NEXUS
+[ Cross-validation test: USERTYPE asymmetric model, coding=all ]
+Begin data;
+    Dimensions ntax=5 nchar=6;
+    Format datatype=standard symbols="0 1" missing=? gap=-;
+    Matrix
+        A  0 0 1 0 1 0
+        B  0 1 1 0 0 1
+        C  1 1 0 1 0 0
+        D  1 0 0 1 1 1
+        E  0 1 0 1 0 1
+    ;
+End;
+Begin mrbayes;
+    set autoclose=yes nowarnings=yes;
+    set seed=42;
+    usertype asym = 2
+        0   1
+        10  0
+    ;
+    ctype asym: 1-4;
+    lset coding=all;
+    mcmcp nrun=1 nchain=1 ngen=1000 samplefr=10;
+    mcmcp printfr=1000 diagnfr=1000;
+    mcmc;
+End;

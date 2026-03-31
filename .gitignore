@@ -1,0 +1,46 @@
+# Build directories
+build/
+build-*/
+*.o
+
+# Generated binaries
+src/yvyra
+
+# Distribution archives
+yvyra-*.tar.gz
+
+# Editor/OS artifacts
+*~
+*.dSYM
+.DS_Store
+Thumbs.db
+TAGS
+tags
+cscope.out
+
+# Private config
+local.env
+
+# Docs (internal notes, not for distribution)
+docs/*
+!docs/GUIDE.md
+
+# Analysis output (testing and examples)
+examples/*.nex*
+testing/*.nex.p
+testing/*.nex.t
+testing/*.nex.w
+testing/*.nex.slk
+testing/*.ckp
+testing/*.ckp~
+testing/*.mcmc
+testing/*.run*.p
+testing/*.run*.t
+testing/*.run*.slk
+testing/*.con.tre
+testing/*.lstat
+testing/*.pstat
+testing/*.tstat
+testing/*.vstat
+testing/*.parts
+testing/*.trprobs

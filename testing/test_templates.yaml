@@ -1,0 +1,36 @@
+# Test built-in model templates
+
+name: template_test
+
+taxa:
+  - id: A
+  - id: B
+  - id: C
+  - id: D
+  - id: E
+
+characters:
+  # Uses built-in 'loss' template (retained/lost, irreversible)
+  - id: feature1
+    model: loss
+    data: {A: retained, B: retained, C: lost, D: lost, E: lost}
+
+  # Uses built-in 'lenition' template (fortis/lenis)
+  - id: feature2
+    model: lenition
+    data: {A: fortis, B: fortis, C: lenis, D: lenis, E: fortis}
+
+  # Uses built-in 'analogy' template (3-state)
+  - id: feature3
+    model: analogy
+    data: {A: irregular, B: irregular, C: semi_regular, D: regular, E: semi_regular}
+
+  # No model — default symmetric Mk
+  - id: feature4
+    data: {A: zero, B: zero, C: one, D: one, E: zero}
+
+analysis:
+  coding: variable
+  seed: 42
+  iterations: 500
+  sample_frequency: 50

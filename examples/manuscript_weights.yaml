@@ -1,0 +1,170 @@
+# Manuscript tradition with weighted variants
+# 6 witnesses, 14 readings: conjunctive errors, separative errors,
+# and orthographic variants with estimated weights
+
+name: manuscript_weights
+
+taxa:
+  - id: A
+    name: Codex_A
+  - id: B
+    name: Codex_B
+  - id: C
+    name: Codex_C
+  - id: D
+    name: Codex_D
+  - id: E
+    name: Codex_E
+  - id: F
+    name: Codex_F
+
+characters:
+  # Conjunctive errors: strong evidence of copying (weight 3.0)
+  - id: lacuna_3v
+    states: [present, absent]
+    weight: 3.0
+    data:
+      A: present
+      B: present
+      C: absent
+      D: absent
+      E: absent
+      F: absent
+  - id: transposition_ch7
+    states: [original, transposed]
+    weight: 3.0
+    data:
+      A: original
+      B: original
+      C: transposed
+      D: transposed
+      E: transposed
+      F: transposed
+  - id: interpolation_12r
+    states: [absent, present]
+    weight: 3.0
+    data:
+      A: absent
+      B: absent
+      C: present
+      D: present
+      E: present
+      F: present
+  # Separative errors: distinguish sub-branches (weight 2.0)
+  - id: omission_5v
+    states: [present, absent]
+    weight: 2.0
+    data:
+      A: present
+      B: present
+      C: present
+      D: absent
+      E: absent
+      F: absent
+  - id: substitution_8r
+    states: [original, variant]
+    weight: 2.0
+    data:
+      A: original
+      B: original
+      C: original
+      D: variant
+      E: variant
+      F: variant
+  - id: gloss_marginal
+    states: [absent, incorporated]
+    weight: 2.0
+    data:
+      A: absent
+      B: absent
+      C: absent
+      D: incorporated
+      E: incorporated
+      F: incorporated
+  - id: rewriting_15v
+    states: [original, rewritten]
+    weight: 2.0
+    data:
+      A: original
+      B: original
+      C: original
+      D: original
+      E: rewritten
+      F: rewritten
+  - id: rubric_change
+    states: [original, modified]
+    weight: 2.0
+    data:
+      A: original
+      B: original
+      C: original
+      D: original
+      E: modified
+      F: modified
+  - id: abbreviation_style
+    states: [expanded, contracted]
+    weight: 1.5
+    data:
+      A: expanded
+      B: contracted
+      C: contracted
+      D: expanded
+      E: expanded
+      F: expanded
+  # Orthographic variants: let the data decide (estimated weight)
+  - id: spelling_ae
+    states: [ae, e]
+    weight: estimated
+    data:
+      A: ae
+      B: ae
+      C: e
+      D: e
+      E: ae
+      F: e
+  - id: spelling_ci
+    states: [ci, ti]
+    weight: estimated
+    data:
+      A: ti
+      B: ci
+      C: ci
+      D: ti
+      E: ci
+      F: ci
+  - id: word_order_9r
+    states: [order_a, order_b]
+    weight: estimated
+    data:
+      A: order_a
+      B: order_a
+      C: order_b
+      D: order_a
+      E: order_b
+      F: order_b
+  # Shared by all descendants (A as archaic witness)
+  - id: colophon
+    states: [present, absent]
+    data:
+      A: present
+      B: absent
+      C: absent
+      D: absent
+      E: absent
+      F: absent
+  - id: chapter_division
+    states: [original, modified]
+    data:
+      A: original
+      B: modified
+      C: modified
+      D: modified
+      E: modified
+      F: modified
+
+analysis:
+  coding: variable
+  seed: 1305
+  iterations: 100000
+  sample_frequency: 50
+  sitelikes: yes

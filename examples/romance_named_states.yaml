@@ -1,0 +1,162 @@
+# Romance languages with meaningful state labels
+# 6 languages, 14 characters including a 3-state character
+
+name: named_states
+
+taxa:
+  - id: lat
+    name: Latin
+  - id: fra
+    name: French
+  - id: spa
+    name: Spanish
+  - id: ita
+    name: Italian
+  - id: por
+    name: Portuguese
+  - id: ron
+    name: Romanian
+
+characters:
+  # All daughters share (Latin as outgroup)
+  - id: future_tense
+    states: [synthetic, periphrastic]
+    data:
+      lat: synthetic
+      fra: periphrastic
+      spa: periphrastic
+      ita: periphrastic
+      por: periphrastic
+      ron: periphrastic
+  - id: articles
+    states: [absent, present]
+    data:
+      lat: absent
+      fra: present
+      spa: present
+      ita: present
+      por: present
+      ron: present
+  # Italo-Western (all except Romanian)
+  - id: cl_palatalization
+    states: [preserved, palatalized]
+    data:
+      lat: preserved
+      fra: palatalized
+      spa: palatalized
+      ita: palatalized
+      por: palatalized
+      ron: preserved
+  - id: case_loss
+    states: [retained, lost]
+    data:
+      lat: retained
+      fra: lost
+      spa: lost
+      ita: lost
+      por: lost
+      ron: retained
+  - id: neuter_loss
+    states: [retained, lost]
+    data:
+      lat: retained
+      fra: lost
+      spa: lost
+      ita: lost
+      por: lost
+      ron: retained
+  - id: preposed_article
+    states: [absent, present]
+    data:
+      lat: absent
+      fra: present
+      spa: present
+      ita: present
+      por: present
+      ron: absent
+  # Western Romance (French, Spanish, Portuguese)
+  - id: final_s
+    states: [lost, preserved]
+    data:
+      lat: preserved
+      fra: preserved
+      spa: preserved
+      ita: lost
+      por: preserved
+      ron: lost
+  - id: voicing
+    states: [preserved, voiced]
+    data:
+      lat: preserved
+      fra: voiced
+      spa: voiced
+      ita: preserved
+      por: voiced
+      ron: preserved
+  - id: intervocalic_lenition
+    states: [preserved, weakened]
+    data:
+      lat: preserved
+      fra: weakened
+      spa: weakened
+      ita: preserved
+      por: weakened
+      ron: preserved
+  # Ibero-Romance (Spanish, Portuguese)
+  - id: initial_f
+    states: [preserved, lost]
+    data:
+      lat: preserved
+      fra: preserved
+      spa: lost
+      ita: preserved
+      por: lost
+      ron: preserved
+  - id: pl_palatalization
+    states: [preserved, palatalized]
+    data:
+      lat: preserved
+      fra: preserved
+      spa: palatalized
+      ita: preserved
+      por: palatalized
+      ron: preserved
+  # Gallo-Romance (French)
+  - id: front_rounding
+    states: [absent, present]
+    data:
+      lat: absent
+      fra: present
+      spa: absent
+      ita: absent
+      por: absent
+      ron: absent
+  - id: liaison
+    states: [absent, present]
+    data:
+      lat: absent
+      fra: present
+      spa: absent
+      ita: absent
+      por: absent
+      ron: absent
+  # 3-state character: demonstrates multi-state named encoding
+  - id: intervocalic_p
+    states: [preserved, lenited, lost]
+    data:
+      lat: preserved
+      fra: lost
+      spa: lenited
+      ita: preserved
+      por: lenited
+      ron: preserved
+
+analysis:
+  coding: variable
+  seed: 1305
+  iterations: 25000
+  sample_frequency: 50
+  sitelikes: yes
+
+diagnostics:
+  - asr_entropy

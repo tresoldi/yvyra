@@ -1,0 +1,159 @@
+# Uncertain data — fragmentary Tocharian
+# 6 IE branches, 14 characters with missing, partial, and polymorphic codings
+
+name: uncertain_ie
+
+taxa:
+  - id: hit
+    name: Hittite
+  - id: grk
+    name: Greek
+  - id: lat
+    name: Latin
+  - id: san
+    name: Sanskrit
+  - id: toA
+    name: Tocharian_A
+  - id: toB
+    name: Tocharian_B
+
+characters:
+  # Core IE vs Anatolian (Hittite as outgroup)
+  - id: augment
+    states: [absent, present]
+    data:
+      hit: absent
+      grk: present
+      lat: present
+      san: present
+      toA: present
+      toB: present
+  - id: thematic_vowel
+    states: [absent, present]
+    data:
+      hit: absent
+      grk: present
+      lat: present
+      san: present
+      toA: present
+      toB: present
+  - id: feminine_gender
+    states: [absent, present]
+    data:
+      hit: absent
+      grk: present
+      lat: present
+      san: present
+      toA: present
+      toB: present
+  # Tocharian A+B clade
+  - id: vowel_rotation
+    states: [absent, present]
+    data:
+      hit: absent
+      grk: absent
+      lat: absent
+      san: absent
+      toA: present
+      toB: present
+  - id: case_agglutination
+    states: [absent, present]
+    data:
+      hit: absent
+      grk: absent
+      lat: absent
+      san: absent
+      toA: present
+      toB: present
+  - id: verb_class_merger
+    states: [distinct, merged]
+    data:
+      hit: distinct
+      grk: distinct
+      lat: distinct
+      san: distinct
+      toA: merged
+      toB: merged
+  # Graeco-Aryan signal
+  - id: prohibitive_ma
+    states: [absent, present]
+    data:
+      hit: absent
+      grk: present
+      lat: absent
+      san: present
+      toA: ~                                # damaged tablet
+      toB: ~                                # unattested
+  - id: augment_preterite
+    states: [absent, present]
+    data:
+      hit: absent
+      grk: present
+      lat: absent
+      san: present
+      toA: ~                                # missing
+      toB: {present: 0.6, absent: 0.4}     # partially attested
+  # Latin innovation
+  - id: gen_sg_i
+    states: [absent, present]
+    data:
+      hit: absent
+      grk: absent
+      lat: present
+      san: absent
+      toA: absent
+      toB: absent
+  # Fragmentary Tocharian: partial confidence
+  - id: perfect_tense
+    states: [retained, lost]
+    data:
+      hit: lost
+      grk: retained
+      lat: retained
+      san: retained
+      toA: {lost: 0.8}                     # probably lost (damaged text)
+      toB: ~                                # unreadable
+  - id: dual_number
+    states: [retained, lost]
+    data:
+      hit: lost
+      grk: retained
+      lat: lost
+      san: retained
+      toA: ~                                # not attested
+      toB: {retained: 0.6, lost: 0.4}      # contested
+  - id: middle_voice
+    states: [retained, lost]
+    data:
+      hit: retained
+      grk: retained
+      lat: {retained: 0.7}                 # partially retained
+      san: retained
+      toA: lost
+      toB: lost
+  # Noisy / uncertain
+  - id: laryngeal_reflex
+    states: [colored, lost]
+    data:
+      hit: colored
+      grk: {colored: 0.3, lost: 0.7}       # disputed reflex
+      lat: lost
+      san: lost
+      toA: lost
+      toB: lost
+  - id: subjunctive
+    states: [retained, lost]
+    data:
+      hit: lost
+      grk: retained
+      lat: retained
+      san: retained
+      toA: {retained: 0.5, lost: 0.5}      # ambiguous forms
+      toB: retained
+
+analysis:
+  coding: variable
+  seed: 1305
+  iterations: 100000
+  sample_frequency: 50
+  sitelikes: yes
