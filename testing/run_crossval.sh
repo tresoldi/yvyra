@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Cross-validation runner: builds upstream MrBayes and yvyra-c (both
+# Cross-validation runner: builds upstream MrBayes and yvyra (both
 # without SIMD), then runs deterministic comparison on all test files.
 #
 # Usage:
@@ -9,7 +9,7 @@
 #
 # Prerequisites:
 #   - autotools (autoconf, automake) for MrBayes build
-#   - cmake for yvyra-c build
+#   - cmake for yvyra build
 #   - python3
 #
 # The script creates a temporary MrBayes worktree from the pre-fork
@@ -33,10 +33,10 @@ echo "  Repo:       $REPO_DIR"
 echo "  Fork point: $FORK_POINT"
 echo ""
 
-# --- Build yvyra-c without SIMD ---
+# --- Build yvyra without SIMD ---
 YVYRA_BIN="$REPO_DIR/build-novec/src/yvyra"
 if [ "$SKIP_BUILD" = "0" ] || [ ! -f "$YVYRA_BIN" ]; then
-    echo "Building yvyra-c (no SIMD)..."
+    echo "Building yvyra (no SIMD)..."
     cmake -B "$REPO_DIR/build-novec" -S "$REPO_DIR" \
         -DENABLE_SSE=OFF -DENABLE_AVX=OFF -DENABLE_FMA=OFF \
         -DCMAKE_BUILD_TYPE=Release > /dev/null 2>&1

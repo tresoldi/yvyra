@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Cross-validation: compare yvyra-c output against upstream MrBayes 3.2.7a.
+Cross-validation: compare yvyra output against upstream MrBayes 3.2.7a.
 
 Runs both programs on the same nexus file with the same seed and compares
 the .p (parameters) and .t (trees) files generation-by-generation.
@@ -162,7 +162,7 @@ def compare_t_files(trees_a, trees_b, label_a="yvyra", label_b="mrbayes"):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Cross-validate yvyra-c against upstream MrBayes")
+    parser = argparse.ArgumentParser(description="Cross-validate yvyra against upstream MrBayes")
     parser.add_argument("--yvyra", required=True, help="Path to yvyra binary")
     parser.add_argument("--mrbayes", required=True, help="Path to upstream mb binary")
     parser.add_argument("--nex", required=True, help="Path to nexus test file")
@@ -189,7 +189,7 @@ def main():
         shutil.copy2(nex_path, dir_mb)
 
         # Run both
-        print("Running yvyra-c...")
+        print("Running yvyra...")
         out_yv, rc_yv = run_program(yvyra_bin, os.path.join(dir_yv, nex_name), dir_yv)
         print(f"  Exit code: {rc_yv}")
 

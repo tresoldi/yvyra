@@ -2,7 +2,7 @@
 
 [ Anatolian Full Analysis - Billing & Elgh (2023)
   27 characters, 5 taxa, 6 asymmetric evolution models
-  Translated from yvyra Python YAML to Nexus format for yvyra-c
+  Translated from yvyra Python YAML to Nexus format for yvyra
 
   Characters encoded as integers (state indices).
   Cost matrices converted to rates via rate = 1/cost.
