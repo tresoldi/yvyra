@@ -42,7 +42,7 @@ characters:
 analysis:
   coding: variable
   seed: 1305
-  iterations: 5000
+  iterations: 50000
   sample_frequency: 50
   sitelikes: yes
 

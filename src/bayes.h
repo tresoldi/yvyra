@@ -6,7 +6,7 @@
 #   define VERSION_NUMBER  PACKAGE_VERSION
 #else  /* some defaults that would otherwise be guessed by configure */
 #   define PACKAGE_NAME "yvyra"
-#   define PACKAGE_VERSION "0.1.0"
+#   define PACKAGE_VERSION "0.2.0"
 #   define HOST_CPU "x86_64"
 #   define VERSION_NUMBER  PACKAGE_VERSION
 #   undef  HAVE_LIBREADLINE

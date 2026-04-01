@@ -1,5 +1,5 @@
 /*
- * Guide content: 8-step interactive walkthrough for yvyra.
+ * Guide content: 9-step interactive walkthrough for yvyra.
  * Each step has: title, HTML content, and a YAML example.
  */
 
@@ -95,7 +95,8 @@ The analysis runs 25,000 iterations and should complete in a few seconds.</p>
 <li>The <em>consensus tree</em>: does it group (Ionic, Attic) and (Dorian, Aeolic)?</li>
 <li>The <em>clade posteriors</em>: which groupings have strong support (&gt;80%)?</li>
 <li>The <em>best log-likelihood</em>: a measure of how well the model fits the data</li>
-<li>The <em>convergence assessment</em>: is the ESS above 200?</li>
+<li>The <em>convergence assessment</em>: the ESS will be low for this short
+run &mdash; later examples use longer chains</li>
 </ul>
 `,
 example: `# Step 2: Your first analysis
@@ -210,7 +211,7 @@ characters:
       arcadian: absent
       ionic: absent
       attic: absent
-  # Innovations separating Koine as outgroup
+  # Innovations shared by all except Koine
   - id: dual_loss
     data:
       koine: preserved
@@ -265,7 +266,7 @@ previous step.</p>
 `,
 example: `# Step 3: Named states
 # Romance languages with meaningful state labels
-# 6 languages, 14 characters including a 3-state character
+# 6 languages, 16 characters including two 3-state characters
 
 name: named_states
 
@@ -284,7 +285,7 @@ taxa:
     name: Romanian
 
 characters:
-  # All daughters share (Latin as outgroup)
+  # All daughters share (Latin is the most archaic)
   - id: future_tense
     states: [synthetic, periphrastic]
     data:
@@ -331,15 +332,6 @@ characters:
       ita: lost
       por: lost
       ron: retained
-  - id: preposed_article
-    states: [absent, present]
-    data:
-      lat: absent
-      fra: present
-      spa: present
-      ita: present
-      por: present
-      ron: absent
   # Western Romance (French, Spanish, Portuguese)
   - id: final_s
     states: [lost, preserved]
@@ -406,7 +398,26 @@ characters:
       ita: absent
       por: absent
       ron: absent
-  # 3-state character: demonstrates multi-state named encoding
+  # Italian groups with Western Romance
+  - id: conditional_mood
+    states: [subjunctive, infinitive_based]
+    data:
+      lat: subjunctive
+      fra: infinitive_based
+      spa: infinitive_based
+      ita: infinitive_based
+      por: infinitive_based
+      ron: subjunctive
+  - id: habere_auxiliary
+    states: [absent, present]
+    data:
+      lat: absent
+      fra: present
+      spa: present
+      ita: present
+      por: present
+      ron: absent
+  # 3-state characters: demonstrate multi-state named encoding
   - id: intervocalic_p
     states: [preserved, lenited, lost]
     data:
@@ -416,12 +427,23 @@ characters:
       ita: preserved
       por: lenited
       ron: preserved
+  - id: article_position
+    states: [absent, preposed, postposed]
+    data:
+      lat: absent
+      fra: preposed
+      spa: preposed
+      ita: preposed
+      por: preposed
+      ron: postposed
 
 analysis:
   coding: variable
+  clock: strict
+  chains: 4
   seed: 1305
-  iterations: 25000
-  sample_frequency: 50
+  iterations: 1000000
+  sample_frequency: 200
   sitelikes: yes
 
 diagnostics:
@@ -442,7 +464,8 @@ likelihood than shared retentions.</p>
 history. This example combines two built-in templates, <code>loss</code>
 (cost 1 forward, 100 reverse) and <code>lenition</code> (cost 1 forward,
 2 reverse), with a custom <code>one_way</code> model for innovations that
-do not reverse. Old Irish serves as outgroup.</p>
+do not reverse. Old Irish is the most archaic language in the sample
+and should split off earliest.</p>
 
 <p><strong>What to look for:</strong> Goidelic (Scottish Gaelic + Manx) and
 Brythonic (Welsh + Breton + Cornish) should both receive posterior support.
@@ -477,7 +500,7 @@ models:
       extended:  100.0  0
 
 characters:
-  # All share (Old Irish as archaic outgroup)
+  # All share (Old Irish is the most archaic)
   - id: initial_mutation
     states: [absent, present]
     model: loss
@@ -605,9 +628,11 @@ characters:
 
 analysis:
   coding: variable
+  clock: strict
+  chains: 4
   seed: 1305
-  iterations: 50000
-  sample_frequency: 50
+  iterations: 500000
+  sample_frequency: 100
   sitelikes: yes
 
 diagnostics:
@@ -803,8 +828,9 @@ characters:
 
 analysis:
   coding: variable
+  tree_model: unrooted   # estimated weights mix poorly with clock on small data
   seed: 1305
-  iterations: 100000
+  iterations: 200000
   sample_frequency: 50
   sitelikes: yes
 `
@@ -825,8 +851,9 @@ problem arises whenever a datum is not certain but not entirely absent either.</
 <li><code>{state_a: 0.6, state_b: 0.4}</code> — polymorphic or contested coding</li>
 </ul>
 
-<p>This example uses six Indo-European branches with Hittite as the Anatolian
-outgroup. Several Tocharian characters are coded as missing or with partial
+<p>This example uses six Indo-European branches. Hittite (Anatolian) is the
+most divergent and should split off at the root. Several Tocharian characters
+are coded as missing or with partial
 confidence, reflecting the fragmentary record. Greek and Latin carry some
 uncertain codings for disputed features as well.</p>
 
@@ -854,7 +881,7 @@ taxa:
     name: Tocharian_B
 
 characters:
-  # Core IE vs Anatolian (Hittite as outgroup)
+  # Core IE vs Anatolian (Hittite is the most divergent)
   - id: augment
     states: [absent, present]
     data:
@@ -1020,8 +1047,8 @@ the tree.</p>
 
 <p><strong>What to look for:</strong> <code>lotus_decoration</code> supports the
 clade; <code>base_ring_form</code> (shared by Cyprus and the Levant through
-trade) conflicts. The sensitivity table shows the clade dropping from ~73% to
-~46% if the lotus decoration character is removed.</p>
+trade) conflicts. The sensitivity table shows the clade dropping from ~66% to
+~44% if the lotus decoration character is removed.</p>
 `,
 example: `# Step 7: Bronze Age Mediterranean pottery traditions
 # 6 traditions, 13 characters, diagnostics for Egyptian+Levantine clade
@@ -1169,6 +1196,7 @@ characters:
 
 analysis:
   coding: variable
+  tree_model: unrooted   # unrooted for more instructive sensitivity spread
   seed: 1305
   iterations: 200000
   sample_frequency: 50
@@ -1520,6 +1548,183 @@ diagnostics:
   - chardiag: [Lydian, Luwian, Lycian]
   - sensitivity: [Lydian, Luwian, Lycian]
   - asr_entropy
+`
+},
+
+{
+title: "Rooted trees and clock models",
+content: `
+<p>yvyra uses rooted trees by default. The model infers the root position
+on its own, so you do not need to pick an outgroup. Branch lengths are in
+units of relative time.</p>
+
+<p>This matters because unrooted trees pin one taxon at the root for
+computational reasons, and that taxon can never group with anything else.
+With a rooted clock tree the model decides where the root goes.</p>
+
+<p>The "clock" does not mean a constant rate of change. The default model,
+IGR (Independent Gamma Rates), gives each branch its own rate drawn from a
+gamma distribution. A language can sit still for centuries and then shift
+fast, and the model will accommodate that. Other options:</p>
+<ul>
+<li><code>clock: strict</code> &mdash; same rate on every branch</li>
+<li><code>clock: igr</code> &mdash; independent gamma rates (default)</li>
+<li><code>clock: iln</code> &mdash; independent lognormal rates</li>
+<li><code>clock: tk02</code> &mdash; autocorrelated (parent and child branches tend to have similar rates)</li>
+</ul>
+
+<p>For unrooted trees, set <code>tree_model: unrooted</code> in
+<code>analysis:</code>. You can then specify an outgroup with
+<code>outgroup: &lt;taxon_id&gt;</code>.</p>
+
+<p>The example uses eight sound changes from textbook Germanic historical
+linguistics: rhotacism and *&#x113;&#x2081; lowering separate East from
+Northwest Germanic, West Germanic gemination splits off North Germanic,
+Anglo-Frisian brightening and the Ingvaeonic nasal spirant law group
+English with Frisian (and partly with Saxon), and the High German
+consonant shift isolates Old High German.</p>
+
+<p><strong>What to look for:</strong></p>
+<ul>
+<li>Gothic (East Germanic) should split off at the root</li>
+<li>Old English and Old Frisian should form an Anglo-Frisian clade</li>
+<li>Old Saxon tends to group with Anglo-Frisian rather than with Old High
+German &mdash; this is the Ingvaeonic hypothesis, favoured here because the
+nasal spirant law links English, Frisian, and Saxon in our simplified
+dataset. A fuller character set might recover the traditional Continental
+grouping (OHG+OS) instead</li>
+<li>The <code>.p</code> file has a <code>TH</code> column (tree height,
+i.e. root age) next to the usual <code>TL</code> (tree length)</li>
+</ul>
+`,
+example: `# Step 9: Rooted trees and clock models
+# Germanic languages: textbook sound changes
+
+name: germanic_clock
+taxa:
+  - id: got
+    name: Gothic
+  - id: non
+    name: Old_Norse
+  - id: oen
+    name: Old_English
+  - id: ofr
+    name: Old_Frisian
+  - id: ohg
+    name: Old_High_German
+  - id: osx
+    name: Old_Saxon
+models:
+  one_way:
+    costs:
+      conservative:  0      1.0
+      innovative:    100.0  0
+  final_g:
+    # Ordered: preserved > weakened > lost
+    costs:
+      preserved:  0      1.0    2.0
+      weakened:   100.0  0      1.0
+      lost:       100.0  100.0  0
+characters:
+  # PGmc *z > NWGmc *r (e.g. 'hare': Got. *hazus vs ON heri, OE hara)
+  - id: rhotacism
+    model: one_way
+    weight: 2.0
+    data:
+      got: conservative
+      non: innovative
+      oen: innovative
+      ofr: innovative
+      ohg: innovative
+      osx: innovative
+  # PGmc *ee1 retained in Gothic, lowered to *aa in NWGmc
+  # (e.g. 'deed': Got. ga-deths vs ON dadh, OE daed)
+  - id: ee1_lowering
+    model: one_way
+    data:
+      got: conservative
+      non: innovative
+      oen: innovative
+      ofr: innovative
+      ohg: innovative
+      osx: innovative
+  # Consonant doubling before *j in West Germanic only
+  # (e.g. 'bed': Got. badi vs OE bedd, OHG betti)
+  - id: wgmc_gemination
+    model: one_way
+    data:
+      got: conservative
+      non: conservative
+      oen: innovative
+      ofr: innovative
+      ohg: innovative
+      osx: innovative
+  # PGmc *aa > ae in Anglo-Frisian
+  # (e.g. 'day': Got. dags, ON dagr vs OE daeg, OFr dei)
+  - id: af_brightening
+    model: one_way
+    data:
+      got: conservative
+      non: conservative
+      oen: innovative
+      ofr: innovative
+      ohg: conservative
+      osx: conservative
+  # Voiceless stops > affricates/fricatives in OHG
+  # (e.g. 'that': Got. thata, OE thaet vs OHG daz)
+  - id: hg_shift
+    model: one_way
+    weight: 2.0
+    data:
+      got: conservative
+      non: conservative
+      oen: conservative
+      ofr: conservative
+      ohg: innovative
+      osx: conservative
+  # *VnC > *V:C with nasal loss in Ingvaeonic (OE, OFr, OS)
+  # (e.g. 'goose': Got. *gans vs OE gos, OFr gos, OS gos)
+  - id: ingvaeonic_nsl
+    model: one_way
+    data:
+      got: conservative
+      non: conservative
+      oen: innovative
+      ofr: innovative
+      ohg: conservative
+      osx: innovative
+  # Loss of unstressed medial vowels in North Germanic
+  # (e.g. 'guest': PGmc *gastiz > ON gestr vs Got. gasts)
+  - id: ngmc_syncope
+    model: one_way
+    data:
+      got: conservative
+      non: innovative
+      oen: conservative
+      ofr: conservative
+      ohg: conservative
+      osx: conservative
+  # Word-final *g reflexes: preserved in East/North Gmc,
+  # weakened to fricative in Continental WGmc, lost in Anglo-Frisian
+  - id: final_g
+    model: final_g
+    data:
+      got: preserved
+      non: preserved
+      oen: lost
+      ofr: lost
+      ohg: weakened
+      osx: weakened
+analysis:
+  coding: variable
+  clock: strict
+  seed: 71492
+  iterations: 750000
+  sample_frequency: 100
+  runs: 1
+  chains: 4
+  print_frequency: 50000
+  diagnostic_frequency: 10000
 `
 }
 ];

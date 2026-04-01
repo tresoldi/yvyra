@@ -19,6 +19,8 @@ stripped of all molecular models.
 - **Confidence-weighted tips**: partial confidence and polymorphic codings
 - **Per-character diagnostics**: clade-character support, leave-one-out
   sensitivity (importance sampling), consistency index, ASR entropy
+- **Rooted clock trees** (default): birth-death tree prior with IGR relaxed
+  clock; root inferred by the model, no outgroup needed
 - **Per-model-group ascertainment correction** for heterogeneous USERTYPE models
 - Lewis (2001) Mk model with `coding=variable`
 - Gamma rate variation, ordered/unordered characters
@@ -68,6 +70,8 @@ name: example
 taxa:
   - id: hit
     name: Hittite
+  - id: pal
+    name: Palaic
   - id: luw
     name: Luwian
   - id: lyc
@@ -84,6 +88,14 @@ characters:
     model: one_way
     data:
       hit: conservative
+      pal: conservative
+      luw: innovative
+      lyc: innovative
+  - id: ye_yi
+    model: one_way
+    data:
+      hit: conservative
+      pal: conservative
       luw: innovative
       lyc: innovative
 
@@ -111,13 +123,13 @@ missing data, and polymorphic codings.
    |--- Palaic
    +
    |          /--- Lydian
-   \---83-----+
+   \---76-----+
               |          /--- Luwian
-              \---100----+
+              \---99-----+
                          \--- Lycian
 ```
 
-Luwian-Lycian clade at 100%, Lydian grouping with Luwic at 83%.
+Luwian+Lycian clade at 99%, Lydian grouping with Luwic at 76%.
 
 ## Cost matrices
 

@@ -100,17 +100,22 @@ footer{margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);fon
 .guide-step .load-btn{display:inline-block;background:var(--btn-bg);color:var(--btn-fg);border:none;padding:.3rem .8rem;border-radius:4px;cursor:pointer;font-size:.82rem;margin-top:.4rem}
 .guide-step .load-btn:hover{background:var(--btn-hover)}
 .beta-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center}
-.beta-modal{background:#fff;border-radius:6px;max-width:520px;width:90%;padding:1.5rem 2rem;box-shadow:0 4px 20px rgba(0,0,0,.25);font-size:.9rem;line-height:1.6}
-.beta-modal h3{color:var(--accent);margin:0 0 .8rem;font-size:1.1rem}
-.beta-modal p{margin-bottom:.8rem}
-.beta-modal .beta-close{display:block;margin:1rem auto 0;background:var(--btn-bg);color:var(--btn-fg);border:none;padding:.4rem 1.5rem;border-radius:4px;cursor:pointer;font-family:inherit;font-size:.9rem}
+.beta-modal{background:#fff;border-radius:6px;max-width:520px;width:90%;padding:1.5rem 2rem;box-shadow:0 4px 20px rgba(0,0,0,.25);font-size:.9rem;line-height:1.6;display:flex;flex-direction:column;max-height:85vh}
+.beta-modal h3{color:var(--accent);margin:0 0 .8rem;font-size:1.1rem;flex-shrink:0}
+.beta-modal-body{overflow-y:auto;flex:1;min-height:0;padding-right:.3rem}
+.beta-modal-body p{margin-bottom:.8rem}
+.beta-modal-body h4{color:var(--accent);font-size:.95rem;margin:1rem 0 .5rem;border-top:1px solid var(--border);padding-top:.8rem}
+.beta-modal-body ul{margin:0 0 .6rem 1.2rem;font-size:.88rem}
+.beta-modal-body li{margin-bottom:.3rem}
+.beta-modal .beta-close{display:block;margin:1rem auto 0;background:var(--btn-bg);color:var(--btn-fg);border:none;padding:.4rem 1.5rem;border-radius:4px;cursor:pointer;font-family:inherit;font-size:.9rem;flex-shrink:0}
 .beta-modal .beta-close:hover{background:var(--btn-hover)}
 </style>
 </head>
 <body>
 <div class="beta-overlay" id="betaModal">
 <div class="beta-modal">
-<h3>yvyra 0.1.0 — beta</h3>
+<h3>yvyra 0.2.0 — beta</h3>
+<div class="beta-modal-body">
 <p>This is a beta version of yvyra. The core MCMC engine and diagnostic
 tools are functional, and MCMC results are cross-validated against
 upstream MrBayes 3.2.7a after each change to the source code (deterministic
@@ -119,17 +124,30 @@ been validated extensively enough for use in published studies, and
 results should be treated as preliminary.</p>
 <p>Several features from the roadmap are not yet integrated, including
 ancestral state constraints (root priors), continuous traits, estimated
-transition rates, and clock models. These are planned for upcoming
-releases.</p>
+transition rates, and temporal calibration for clock trees. These are
+planned for upcoming releases.</p>
 <p>If you are interested in using yvyra for your work, or would like to
 collaborate on its development, I would be glad to hear from you.
 Contact: Tiago Tresoldi
 (<a href="mailto:tiago.tresoldi@lingfil.uu.se">tiago.tresoldi@lingfil.uu.se</a>).</p>
+<h4>Changelog — 0.2.0</h4>
+<ul>
+<li><strong>Rooted clock trees (new default).</strong> YAML analyses now use a
+rooted birth-death tree with an IGR relaxed clock. The root is inferred by
+the model, so no outgroup is needed. Set <code>tree_model: unrooted</code>
+for the old behavior. Choose a clock model with
+<code>clock: strict|igr|iln|tk02|cpp|wn</code>.</li>
+<li><strong>Fix rooting artifact for unrooted trees.</strong> In unrooted mode,
+the first taxon was silently pinned at the root. A dummy outgroup is now
+injected and pruned from output. Thanks to Deepthi Gopal for reporting
+this bug.</li>
+</ul>
+</div>
 <button class="beta-close" onclick="document.getElementById('betaModal').style.display='none'">Continue</button>
 </div>
 </div>
 <nav class="top-nav">
-<span class="brand">yvyra 0.1.0</span>
+<span class="brand">yvyra 0.2.0</span>
 <a href="https://github.com/tresoldi/yvyra">GitHub</a>
 <button id="guideBtn" onclick="toggleGuide()">Guide</button>
 </nav>
@@ -156,12 +174,7 @@ character weights, confidence-weighted tips, and per-character diagnostics.</p>
 <div class="load-info" id="loadInfo"><span id="loadText">Loading yvyra engine (1.3 MB)...</span><div class="load-bar"><div class="load-bar-fill"></div></div></div>
 <div id="app">
 <div class="toolbar">
-<select id="examples" onchange="onExampleSelect()">
-<option value="anatolian">Anatolian (Billing &amp; Elgh 2023)</option>
-<option value="anatolian_diag">Anatolian + diagnostics</option>
-<option value="simple">Simple Mk (Greek dialects)</option>
-<option value="multistate">Multi-state (3 states)</option>
-<option value="usercost">Asymmetric model tutorial</option></select>
+<select id="examples" onchange="onExampleSelect()"></select>
 <button class="secondary" onclick="clearEd()">Clear</button>
 <button class="secondary" onclick="document.getElementById('fileUp').click()">Upload</button>
 <button class="secondary" onclick="saveYaml()">Save</button>
@@ -209,345 +222,24 @@ morphological character data. <em>Syst. Biol.</em> 50:913-925.
 </div><!-- end page-layout -->
 <script src="guide-content.js"></script>
 <script>
-const EX={
-anatolian:`# Anatolian languages — Billing & Elgh (2023)
-# 5 taxa, 8 characters, 4 asymmetric models
-
-name: anatolian
-
-taxa:
-  - id: hit
-    name: Hittite
-  - id: pal
-    name: Palaic
-  - id: lyd
-    name: Lydian
-  - id: luw
-    name: Luwian
-  - id: lyc
-    name: Lycian
-
-models:
-  fort_len:
-    costs:
-      conservative:  0    1.0
-      lenited:       2.0  0
-  one_way:
-    costs:
-      conservative:  0      1.0
-      innovative:    100.0  0
-  third_pl:
-    costs:
-      no_ers:         0       1.0    3.0
-      ers_secondary:  100.0   0      3.0
-      ers_primary:    100.0   100.0  0
-  nti:
-    costs:
-      conservative:  0    1.0
-      innovative:    2.0  0
-
-characters:
-  - id: len_fric
-    model: fort_len
-    data:
-      hit: conservative
-      pal: conservative
-      lyd: lenited
-      luw: ~
-      lyc: lenited
-  - id: eh1_a
-    model: one_way
-    data:
-      hit: conservative
-      pal: conservative
-      lyd: innovative
-      luw: ~
-      lyc: innovative
-  - id: ye_yi
-    model: one_way
-    weight: 2.0
-    data:
-      hit: conservative
-      pal: conservative
-      lyd: innovative
-      luw: innovative
-      lyc: innovative
-  - id: centum
-    model: one_way
-    data:
-      hit: conservative
-      pal: conservative
-      lyd: innovative
-      luw: conservative
-      lyc: innovative
-  - id: lar_phon
-    model: fort_len
-    data:
-      hit: conservative
-      pal: conservative
-      lyd: lenited
-      luw: lenited
-      lyc: lenited
-  - id: gen_ers
-    model: third_pl
-    data:
-      hit: no_ers
-      pal: {no_ers: 0.6, ers_primary: 0.4}
-      lyd: ers_secondary
-      luw: ers_primary
-      lyc: ers_primary
-  - id: nza_abl
-    model: nti
-    data:
-      hit: conservative
-      pal: conservative
-      lyd: conservative
-      luw: innovative
-      lyc: innovative
-  - id: ablins_Vdi
-    data:
-      hit: absent
-      pal: absent
-      lyd: present
-      luw: present
-      lyc: present
-
-analysis:
-  coding: variable
-  seed: 1305
-  iterations: 10000
-  sample_frequency: 50
-  runs: 1
-  chains: 1
-  print_frequency: 2000
-  diagnostic_frequency: 5000
-  sitelikes: yes
-`,
-anatolian_diag:`# Anatolian + post-processing diagnostics
-
-name: anatolian_diag
-
-taxa:
-  - id: hit
-    name: Hittite
-  - id: pal
-    name: Palaic
-  - id: lyd
-    name: Lydian
-  - id: luw
-    name: Luwian
-  - id: lyc
-    name: Lycian
-
-models:
-  fort_len:
-    costs:
-      conservative:  0    1.0
-      lenited:       2.0  0
-  one_way:
-    costs:
-      conservative:  0      1.0
-      innovative:    100.0  0
-  third_pl:
-    costs:
-      no_ers:         0       1.0    3.0
-      ers_secondary:  100.0   0      3.0
-      ers_primary:    100.0   100.0  0
-
-characters:
-  - id: len_fric
-    model: fort_len
-    data:
-      hit: conservative
-      pal: conservative
-      lyd: lenited
-      luw: ~
-      lyc: lenited
-  - id: ye_yi
-    model: one_way
-    weight: 2.0
-    data:
-      hit: conservative
-      pal: conservative
-      lyd: innovative
-      luw: innovative
-      lyc: innovative
-  - id: lar_phon
-    model: fort_len
-    data:
-      hit: conservative
-      pal: conservative
-      lyd: lenited
-      luw: lenited
-      lyc: lenited
-  - id: gen_ers
-    model: third_pl
-    data:
-      hit: no_ers
-      pal: {no_ers: 0.6, ers_primary: 0.4}
-      lyd: ers_secondary
-      luw: ers_primary
-      lyc: ers_primary
-  - id: ablins_Vdi
-    data:
-      hit: absent
-      pal: absent
-      lyd: present
-      luw: present
-      lyc: present
-
-analysis:
-  coding: variable
-  seed: 1305
-  iterations: 10000
-  sample_frequency: 50
-  runs: 1
-  chains: 1
-  sitelikes: yes
-
-diagnostics:
-  - chardiag: [Luwian, Lycian]
-  - sensitivity: [Luwian, Lycian]
-  - asr_entropy
-`,
-simple:`# A fictional family inspired by Ancient Greek dialects
-# 6 languages, 14 characters (phonological and morphological)
-
-name: simple_mk
-
-taxa:
-  - id: koine
-    name: Koine
-  - id: dorian
-    name: Dorian
-  - id: aeolic
-    name: Aeolic
-  - id: arcadian
-    name: Arcadian
-  - id: ionic
-    name: Ionic
-  - id: attic
-    name: Attic
-
-characters:
-  - id: h_loss
-    data: {koine: preserved, dorian: preserved, aeolic: preserved, arcadian: lost, ionic: lost, attic: lost}
-  - id: w_loss
-    data: {koine: preserved, dorian: preserved, aeolic: preserved, arcadian: lost, ionic: lost, attic: lost}
-  - id: long_vowel_shift
-    data: {koine: absent, dorian: absent, aeolic: absent, arcadian: present, ionic: present, attic: present}
-  - id: dat_pl_merger
-    data: {koine: distinct, dorian: distinct, aeolic: distinct, arcadian: merged, ionic: merged, attic: merged}
-  - id: gen_s_ending
-    data: {koine: absent, dorian: absent, aeolic: absent, arcadian: present, ionic: present, attic: present}
-  - id: vowel_contraction
-    data: {koine: absent, dorian: absent, aeolic: absent, arcadian: absent, ionic: present, attic: present}
-  - id: quantitative_metathesis
-    data: {koine: absent, dorian: absent, aeolic: absent, arcadian: absent, ionic: present, attic: present}
-  - id: psilosis
-    data: {koine: absent, dorian: absent, aeolic: absent, arcadian: absent, ionic: present, attic: present}
-  - id: first_aor_part
-    data: {koine: absent, dorian: present, aeolic: present, arcadian: absent, ionic: absent, attic: absent}
-  - id: dat_en_ending
-    data: {koine: absent, dorian: present, aeolic: present, arcadian: absent, ionic: absent, attic: absent}
-  - id: patronymic_suffix
-    data: {koine: absent, dorian: present, aeolic: present, arcadian: absent, ionic: absent, attic: absent}
-  - id: dual_loss
-    data: {koine: preserved, dorian: lost, aeolic: lost, arcadian: lost, ionic: lost, attic: lost}
-  - id: optative_reduction
-    data: {koine: preserved, dorian: lost, aeolic: lost, arcadian: lost, ionic: lost, attic: lost}
-  - id: accent_shift
-    data: {koine: conservative, dorian: innovative, aeolic: conservative, arcadian: innovative, ionic: conservative, attic: innovative}
-
-analysis:
-  coding: variable
-  seed: 1305
-  iterations: 25000
-  sample_frequency: 50
-`,
-multistate:`# Multi-state characters (2 and 3 states)
-
-name: multistate
-
-taxa:
-  - id: A
-  - id: B
-  - id: C
-  - id: D
-  - id: E
-
-characters:
-  - id: feature1
-    states: [none, partial, full]
-    data: {A: none, B: partial, C: full, D: full, E: partial}
-  - id: feature2
-    data: {A: absent, B: absent, C: present, D: present, E: present}
-  - id: feature3
-    states: [type_a, type_b, type_c]
-    data: {A: type_a, B: type_b, C: type_c, D: type_a, E: type_b}
-  - id: feature4
-    data: {A: zero, B: zero, C: one, D: one, E: zero}
-
-analysis:
-  coding: variable
-  seed: 1305
-  iterations: 5000
-  sample_frequency: 50
-`,
-usercost:`# Asymmetric model tutorial — directional change
-
-name: asymmetric_tutorial
-
-taxa:
-  - id: proto
-    name: Proto
-  - id: lang_a
-    name: LangA
-  - id: lang_b
-    name: LangB
-  - id: lang_c
-    name: LangC
-  - id: lang_d
-    name: LangD
-
-models:
-  one_way:
-    costs:
-      conservative:  0     1.0
-      innovative:    50.0  0
-  fort_len:
-    costs:
-      strong:  0    1.0
-      weak:    3.0  0
-
-characters:
-  - id: innovation1
-    model: one_way
-    weight: 2.0
-    data: {proto: conservative, lang_a: innovative, lang_b: innovative, lang_c: conservative, lang_d: conservative}
-  - id: innovation2
-    model: one_way
-    weight: 2.0
-    data: {proto: conservative, lang_a: innovative, lang_b: innovative, lang_c: conservative, lang_d: conservative}
-  - id: lenition1
-    model: fort_len
-    data: {proto: strong, lang_a: weak, lang_b: weak, lang_c: strong, lang_d: strong}
-  - id: neutral1
-    data: {proto: state_a, lang_a: state_a, lang_b: state_b, lang_c: state_b, lang_d: state_a}
-
-analysis:
-  coding: variable
-  seed: 1305
-  iterations: 5000
-  sample_frequency: 50
-  sitelikes: yes
-
-diagnostics:
-  - chardiag: [LangA, LangB]
-`};
+/* Build examples dropdown and EX map from GUIDE_STEPS (guide-content.js) */
+const EX={};
+(function initExamples(){
+  const sel=document.getElementById('examples');
+  if(typeof GUIDE_STEPS==='undefined')return;
+  for(let i=0;i<GUIDE_STEPS.length;i++){
+    if(!GUIDE_STEPS[i].example)continue;
+    const key='guide_'+i;
+    EX[key]=GUIDE_STEPS[i].example;
+    const opt=document.createElement('option');
+    opt.value=key;
+    opt.textContent=GUIDE_STEPS[i].title;
+    sel.appendChild(opt);
+  }
+})();
 
 let worker=null,wasmReady=false,editor=null,totalGen=0,outputFiles={},runCount=0;
-let editorDirty=false,lastLoadedExample='anatolian';
+let editorDirty=false,lastLoadedExample='guide_1';
 
 function initEditor(){
   const ta=document.getElementById('taEditor');
@@ -555,9 +247,10 @@ function initEditor(){
     ta.style.display='none';
     const savedTheme=(function(){try{return localStorage.getItem('yvyra-theme')}catch(e){return null}})() || 'dracula';
     document.getElementById('editorTheme').value=savedTheme;
-    editor=CodeMirror(document.getElementById('editorWrap'),{value:EX.anatolian,mode:'yaml',theme:savedTheme,lineNumbers:true,tabSize:2,indentWithTabs:false});
+    const firstKey=Object.keys(EX)[0]||'';
+    editor=CodeMirror(document.getElementById('editorWrap'),{value:EX[firstKey]||'',mode:'yaml',theme:savedTheme,lineNumbers:true,tabSize:2,indentWithTabs:false});
     editor.on('change',function(){editorDirty=true});
-  } else { ta.value=EX.anatolian; ta.addEventListener('input',function(){editorDirty=true}); }
+  } else { ta.value=EX[Object.keys(EX)[0]||'']||''; ta.addEventListener('input',function(){editorDirty=true}); }
 }
 function getEd(){return editor?editor.getValue():document.getElementById('taEditor').value}
 function setEd(t){if(editor)editor.setValue(t);else document.getElementById('taEditor').value=t;editorDirty=false}
@@ -1352,9 +1045,10 @@ function loadGuideExample(idx){
   const yaml=GUIDE_STEPS[idx].example;
   if(!yaml)return;
   if(editorDirty&&!confirm('Replace editor content with guide example?'))return;
+  const key='guide_'+idx;
   setEd(yaml);
-  document.getElementById('examples').value='';
-  lastLoadedExample='';
+  document.getElementById('examples').value=key;
+  lastLoadedExample=key;
   /* Close guide on mobile */
   if(window.innerWidth<900){
     document.getElementById('pageLayout').classList.remove('guide-open');

@@ -57,6 +57,11 @@ kind of data: discrete characters, directional change, differential weight. The
 examples in this guide include manuscript transmission and pottery traditions
 alongside the linguistic datasets.
 
+**Rooted clock trees.** By default, yvyra infers rooted trees using a relaxed
+clock model (IGR). The root is placed by the model, not by picking an outgroup.
+Branch lengths are in relative time, and each branch gets its own evolutionary
+rate. Set `tree_model: unrooted` if you prefer unrooted trees with an outgroup.
+
 **YAML input.** Analyses are specified in YAML rather than NEXUS command blocks.
 A single file holds models, weights, confidence values, and diagnostics, and
 can be versioned alongside the data.
@@ -195,7 +200,7 @@ characters:
       arcadian: absent
       ionic: absent
       attic: absent
-  # Innovations separating Koine as outgroup
+  # Innovations shared by all except Koine
   - id: dual_loss
     data:
       koine: preserved
@@ -337,8 +342,8 @@ retentions.
 Celtic is a natural test case: lenition pervades the family's phonological
 history. This example combines two built-in templates, `loss` (cost 1 forward,
 100 reverse) and `lenition` (cost 1 forward, 2 reverse), with a custom
-`one_way` model for innovations that do not reverse. Old Irish serves as
-outgroup.
+`one_way` model for innovations that do not reverse. Old Irish is the most
+archaic language in the sample and should split off earliest.
 
 What to look for: Goidelic (Scottish Gaelic + Manx) and Brythonic (Welsh +
 Breton + Cornish) should both receive posterior support. The character
@@ -437,8 +442,9 @@ Three kinds of uncertainty can be encoded:
 - `{state: 0.8}` -- partial confidence (80% probability for this state)
 - `{state_a: 0.6, state_b: 0.4}` -- polymorphic or contested coding
 
-This example uses six Indo-European branches with Hittite as the Anatolian
-outgroup. Several Tocharian characters are coded as missing or with partial
+This example uses six Indo-European branches. Hittite (Anatolian) is the most
+divergent and should split off at the root. Several Tocharian characters are
+coded as missing or with partial
 confidence, reflecting the fragmentary record. Greek and Latin carry some
 uncertain codings for disputed features as well.
 
@@ -603,6 +609,10 @@ Built-in templates (no definition needed): `loss`, `lenition`, `analogy`.
 ```yaml
 analysis:
   coding: variable            # required for yvyra
+  tree_model: clock           # optional, 'clock' (default) or 'unrooted'
+  clock: igr                  # optional, relaxed clock model (default: igr)
+                              #   strict, igr, iln, tk02, cpp, wn
+  outgroup: taxon_id          # optional, for unrooted trees only
   seed: 1305                  # optional, PRNG seed
   iterations: 10000           # optional, MCMC generations
   sample_frequency: 50        # optional, record every Nth
@@ -612,6 +622,10 @@ analysis:
   diagnostic_frequency: 5000  # optional, diagnostics interval
   sitelikes: yes              # optional, per-site log-likelihoods
 ```
+
+Clock trees use a birth-death tree prior with the specified relaxed clock model.
+Branch lengths are in relative time (`clockratepr=fixed(1.0)`). The default
+iterations are 100,000 for clock trees and 50,000 for unrooted trees.
 
 ### Diagnostics
 

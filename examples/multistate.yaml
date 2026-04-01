@@ -10,19 +10,42 @@ taxa:
   - id: E
 
 characters:
+  # 3-state ordered: A is ancestral, B/E partial, C/D fully changed
   - id: feature1
     states: [none, partial, full]
     data: {A: none, B: partial, C: full, D: full, E: partial}
+  # Binary: groups C+D+E
   - id: feature2
     data: {A: absent, B: absent, C: present, D: present, E: present}
+  # 3-state unordered: noisy
   - id: feature3
     states: [type_a, type_b, type_c]
     data: {A: type_a, B: type_b, C: type_c, D: type_a, E: type_b}
+  # Binary: groups C+D
   - id: feature4
     data: {A: zero, B: zero, C: one, D: one, E: zero}
+  # Binary: groups B+E
+  - id: feature5
+    data: {A: absent, B: present, C: absent, D: absent, E: present}
+  # Binary: groups C+D
+  - id: feature6
+    data: {A: old, B: old, C: new, D: new, E: old}
+  # 3-state ordered: A ancestral, B/E intermediate, C/D derived
+  - id: feature7
+    states: [stage_1, stage_2, stage_3]
+    data: {A: stage_1, B: stage_2, C: stage_3, D: stage_3, E: stage_2}
+  # Binary: groups B+E
+  - id: feature8
+    data: {A: absent, B: present, C: absent, D: absent, E: present}
+  # Binary: groups C+D+E (reinforces feature2)
+  - id: feature9
+    data: {A: retained, B: retained, C: changed, D: changed, E: changed}
+  # Binary: A alone is conservative
+  - id: feature10
+    data: {A: original, B: shifted, C: shifted, D: shifted, E: shifted}
 
 analysis:
   coding: variable
   seed: 1305
-  iterations: 5000
+  iterations: 20000
   sample_frequency: 50

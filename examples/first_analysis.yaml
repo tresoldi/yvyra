@@ -110,7 +110,7 @@ characters:
       arcadian: absent
       ionic: absent
       attic: absent
-  # Innovations separating Koine as outgroup
+  # Innovations shared by all except Koine
   - id: dual_loss
     data:
       koine: preserved

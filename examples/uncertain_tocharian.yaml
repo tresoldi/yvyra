@@ -18,7 +18,7 @@ taxa:
     name: Tocharian_B
 
 characters:
-  # Core IE vs Anatolian (Hittite as outgroup)
+  # Core IE vs Anatolian (Hittite is the most divergent)
   - id: augment
     states: [absent, present]
     data:

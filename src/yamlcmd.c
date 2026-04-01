@@ -526,6 +526,48 @@ static int ValidateYaml (YamlNode *root)
             }
         }
 
+    /* Validate tree_model */
+    {
+        const char *tm = analysisNode ? YamlGetScalar(analysisNode, "tree_model") : NULL;
+        if (tm && strcmp(tm, "clock") != 0 && strcmp(tm, "unrooted") != 0
+               && strcmp(tm, "unconstrained") != 0)
+            { fprintf(stderr, "Error: tree_model must be 'clock' or 'unrooted' (got '%s')\n", tm); nErrors++; }
+
+        /* Validate clock model */
+        const char *cm = analysisNode ? YamlGetScalar(analysisNode, "clock") : NULL;
+        if (cm && strcmp(cm,"strict")!=0 && strcmp(cm,"igr")!=0 && strcmp(cm,"iln")!=0
+               && strcmp(cm,"tk02")!=0 && strcmp(cm,"cpp")!=0 && strcmp(cm,"wn")!=0)
+            { fprintf(stderr, "Error: clock must be one of: strict, igr, iln, tk02, cpp, wn (got '%s')\n", cm); nErrors++; }
+
+        /* Determine if clock model is active (for cross-validation below) */
+        int isClock = 1;
+        if (tm && (strcmp(tm, "unrooted") == 0 || strcmp(tm, "unconstrained") == 0))
+            isClock = 0;
+
+        /* Validate outgroup */
+        const char *og = analysisNode ? YamlGetScalar(analysisNode, "outgroup") : NULL;
+        if (og)
+            {
+            if (isClock)
+                { fprintf(stderr, "Error: 'outgroup' cannot be used with tree_model 'clock' (clock trees are rooted by the model)\n"); nErrors++; }
+            else
+                {
+                int found = 0;
+                for (j = 0; j < nTaxa; j++)
+                    if (strcmp(taxaIds[j], og) == 0) { found = 1; break; }
+                if (!found)
+                    { fprintf(stderr, "Error: outgroup '%s' is not a valid taxon id\n", og); nErrors++; }
+                }
+            }
+        else if (!isClock)
+            {
+            /* No explicit outgroup in unrooted mode — check reserved name is not used */
+            for (j = 0; j < nTaxa; j++)
+                if (strcmp(taxaIds[j], "_outgroup_") == 0)
+                    { fprintf(stderr, "Error: taxon id '_outgroup_' is reserved (use 'outgroup:' in analysis section to set a custom outgroup)\n"); nErrors++; }
+            }
+    }
+
     /* Validate models section */
     if (modelsNode && modelsNode->type == YAML_MAPPING)
         {
@@ -612,6 +654,41 @@ char *YamlToNexus (const char *yamlFilename)
     modelsNode = YamlGetChild(root, "models");
     analysisNode = YamlGetChild(root, "analysis");
     diagNode = YamlGetChild(root, "diagnostics");
+
+    /* Tree model: clock (default) or unrooted */
+    const char *treeModel = analysisNode ? YamlGetScalar(analysisNode, "tree_model") : NULL;
+    int useClock = 1;  /* default: clock */
+    if (treeModel && (strcmp(treeModel, "unrooted") == 0 || strcmp(treeModel, "unconstrained") == 0))
+        useClock = 0;
+
+    /* Detect polymorphic/confidence data (tipweights) — incompatible with clock trees */
+    if (useClock && !treeModel)
+        {
+        int hasTipweights = 0;
+        for (i = 0; i < charsNode->nChildren && !hasTipweights; i++)
+            {
+            YamlNode *ch = charsNode->children[i];
+            YamlNode *dataNode = ch->type == YAML_MAPPING ? YamlGetChild(ch, "data") : NULL;
+            if (!dataNode) continue;
+            for (j = 0; j < dataNode->nChildren && !hasTipweights; j++)
+                if (dataNode->children[j]->type == YAML_MAPPING)
+                    hasTipweights = 1;
+            }
+        if (hasTipweights)
+            {
+            fprintf(stderr, "Note: confidence-weighted data detected; using unrooted tree model\n");
+            fprintf(stderr, "      (clock trees do not yet support tipweights; set tree_model: clock to override)\n");
+            useClock = 0;
+            }
+        }
+
+    /* Clock model: igr (default), strict, iln, tk02, cpp, wn */
+    const char *clockModel = analysisNode ? YamlGetScalar(analysisNode, "clock") : NULL;
+    if (!clockModel) clockModel = "igr";
+
+    /* Outgroup handling: dummy only for unrooted trees without explicit outgroup */
+    const char *userOutgroup = analysisNode ? YamlGetScalar(analysisNode, "outgroup") : NULL;
+    int useDummyOutgroup = (!useClock && userOutgroup == NULL) ? 1 : 0;
 
     /* Validation passed — safe to proceed */
     nTaxa = taxaNode->nChildren;
@@ -732,9 +809,19 @@ char *YamlToNexus (const char *yamlFilename)
 
     BufAppend(&buf, "#NEXUS\n\n");
     BufAppend(&buf, "Begin data;\n");
-    BufAppend(&buf, "    Dimensions ntax=%d nchar=%d;\n", nTaxa, nChars);
+    BufAppend(&buf, "    Dimensions ntax=%d nchar=%d;\n",
+              useDummyOutgroup ? nTaxa + 1 : nTaxa, nChars);
     BufAppend(&buf, "    Format datatype=standard symbols=\"%s\" missing=? gap=-;\n", symbols);
     BufAppend(&buf, "    Matrix\n");
+
+    /* Dummy outgroup taxon with all-missing data (absorbs calculation root) */
+    if (useDummyOutgroup)
+        {
+        BufAppend(&buf, "%-12s ", "_outgroup_");
+        for (j = 0; j < nChars; j++)
+            BufAppend(&buf, "?");
+        BufAppend(&buf, "\n");
+        }
 
     /* Build matrix row for each taxon */
     for (i = 0; i < nTaxa; i++)
@@ -779,6 +866,19 @@ char *YamlToNexus (const char *yamlFilename)
         int seed = YamlGetInt(analysisNode, "seed", 0);
         if (seed > 0)
             BufAppend(&buf, "    set seed=%d;\n", seed);
+        }
+
+    /* Outgroup */
+    if (useDummyOutgroup)
+        BufAppend(&buf, "    outgroup _outgroup_;\n");
+    else if (userOutgroup)
+        {
+        /* Map taxon id to the display name used in the matrix */
+        const char *ogDisplayName = userOutgroup;
+        for (i = 0; i < nTaxa; i++)
+            if (strcmp(taxaIds[i], userOutgroup) == 0)
+                { ogDisplayName = taxaNames[i]; break; }
+        BufAppend(&buf, "    outgroup %s;\n", ogDisplayName);
         }
 
     /* Character labels */
@@ -1016,6 +1116,40 @@ char *YamlToNexus (const char *yamlFilename)
         else
             BufAppend(&buf, "    lset coding=variable;\n");
 
+        /* Clock tree priors */
+        if (useClock)
+            {
+            BufAppend(&buf, "    prset brlenspr=clock:birthdeath;\n");
+            BufAppend(&buf, "    prset clockratepr=fixed(1.0);\n");
+            BufAppend(&buf, "    prset treeagepr=gamma(1,1);\n");
+            BufAppend(&buf, "    prset nodeagepr=unconstrained;\n");
+
+            if (strcmp(clockModel, "strict") == 0)
+                BufAppend(&buf, "    prset clockvarpr=strict;\n");
+            else if (strcmp(clockModel, "igr") == 0)
+                {
+                BufAppend(&buf, "    prset clockvarpr=igr;\n");
+                BufAppend(&buf, "    prset igrvarpr=exponential(1.0);\n");
+                }
+            else if (strcmp(clockModel, "iln") == 0)
+                {
+                BufAppend(&buf, "    prset clockvarpr=iln;\n");
+                BufAppend(&buf, "    prset ilnvarpr=exponential(1.0);\n");
+                }
+            else if (strcmp(clockModel, "tk02") == 0)
+                {
+                BufAppend(&buf, "    prset clockvarpr=tk02;\n");
+                BufAppend(&buf, "    prset tk02varpr=exponential(1.0);\n");
+                }
+            else if (strcmp(clockModel, "cpp") == 0)
+                BufAppend(&buf, "    prset clockvarpr=cpp;\n");
+            else if (strcmp(clockModel, "wn") == 0)
+                {
+                BufAppend(&buf, "    prset clockvarpr=wn;\n");
+                BufAppend(&buf, "    prset wnvarpr=exponential(1.0);\n");
+                }
+            }
+
         /* Root state prior.
            Upstream MrBayes's statefreqpr for variable-state Mk only supports symmetric
            Dirichlet or Fixed(Equal). Asymmetric per-state priors require
@@ -1057,7 +1191,8 @@ char *YamlToNexus (const char *yamlFilename)
         if (sitelikes && (strcmp(sitelikes, "yes") == 0 || strcmp(sitelikes, "Yes") == 0))
             BufAppend(&buf, "    report sitelikes=yes;\n");
 
-        int ngen = 50000, samplefr = 50, nrun = 1, nchain = 1;
+        int ngen = useClock ? 100000 : 50000;
+        int samplefr = 50, nrun = 1, nchain = 1;
         int printfr = 5000, diagnfr = 5000;
 
         if (analysisNode)
@@ -1080,6 +1215,8 @@ char *YamlToNexus (const char *yamlFilename)
                   nrun, nchain, ngen, samplefr);
         BufAppend(&buf, "    mcmcp printfr=%d diagnfr=%d;\n", printfr, diagnfr);
         BufAppend(&buf, "    mcmc;\n");
+        if (useDummyOutgroup)
+            BufAppend(&buf, "    delete _outgroup_;\n");
         BufAppend(&buf, "    sump;\n");
         BufAppend(&buf, "    sumt;\n");
         BufAppend(&buf, "    convergence;\n");

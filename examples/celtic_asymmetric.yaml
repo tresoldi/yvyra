@@ -25,7 +25,7 @@ models:
       extended:  100.0  0
 
 characters:
-  # All share (Old Irish as archaic outgroup)
+  # All share (Old Irish is the most archaic)
   - id: initial_mutation
     states: [absent, present]
     model: loss

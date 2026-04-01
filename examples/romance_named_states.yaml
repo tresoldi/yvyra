@@ -18,7 +18,7 @@ taxa:
     name: Romanian
 
 characters:
-  # All daughters share (Latin as outgroup)
+  # All daughters share (Latin is the most archaic)
   - id: future_tense
     states: [synthetic, periphrastic]
     data:
